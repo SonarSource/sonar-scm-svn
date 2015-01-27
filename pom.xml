@@ -11,6 +11,7 @@
   <name>SonarQube :: Plugins :: SCM :: SVN</name>
   <packaging>sonar-plugin</packaging>
   <description>SVN SCM Provider.</description>
+  <version>1.0-SNAPSHOT</version>
   <url>http://redirect.sonarsource.com/plugins/scmsvn.html</url>
   <inceptionYear>2014</inceptionYear>
 
