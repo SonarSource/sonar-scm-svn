@@ -5,13 +5,13 @@
     <groupId>org.codehaus.sonar-plugins</groupId>
     <artifactId>parent</artifactId>
     <version>19</version>
-    <relativePath/>
+    <relativePath />
   </parent>
   <artifactId>sonar-scm-svn-plugin</artifactId>
   <name>SonarQube :: Plugins :: SCM :: SVN</name>
   <packaging>sonar-plugin</packaging>
   <description>SVN SCM Provider.</description>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0-RC</version>
   <url>http://redirect.sonarsource.com/plugins/scmsvn.html</url>
   <inceptionYear>2014</inceptionYear>
 
@@ -40,6 +40,7 @@
     <connection>scm:git:git@github.com:SonarCommunity/sonar-scm-svn.git</connection>
     <developerConnection>scm:git:git@github.com:SonarCommunity/sonar-scm-svn.git</developerConnection>
     <url>https://github.com/SonarCommunity/sonar-scm-svn</url>
+    <tag>1.0-RC</tag>
   </scm>
   
   <issueManagement>
