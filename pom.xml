@@ -11,7 +11,7 @@
   <name>SonarQube :: Plugins :: SCM :: SVN</name>
   <packaging>sonar-plugin</packaging>
   <description>SVN SCM Provider.</description>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0-RC1</version>
   <url>http://redirect.sonarsource.com/plugins/scmsvn.html</url>
   <inceptionYear>2014</inceptionYear>
 
@@ -40,7 +40,7 @@
     <connection>scm:git:git@github.com:SonarCommunity/sonar-scm-svn.git</connection>
     <developerConnection>scm:git:git@github.com:SonarCommunity/sonar-scm-svn.git</developerConnection>
     <url>https://github.com/SonarCommunity/sonar-scm-svn</url>
-    <tag>HEAD</tag>
+    <tag>1.0-RC1</tag>
   </scm>
   
   <issueManagement>
