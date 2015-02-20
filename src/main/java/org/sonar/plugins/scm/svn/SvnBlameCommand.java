@@ -67,6 +67,11 @@ public class SvnBlameCommand extends BlameCommand {
       tasks.add(submitTask(fs, output, executorService, inputFile));
     }
 
+    waitForTaskToComplete(executorService, tasks);
+  }
+
+  private void waitForTaskToComplete(ExecutorService executorService, List<Future<Void>> tasks) {
+    executorService.shutdown();
     for (Future<Void> task : tasks) {
       try {
         task.get();
@@ -103,6 +108,9 @@ public class SvnBlameCommand extends BlameCommand {
     }
     if (exitCode != 0) {
       throw new IllegalStateException("The svn blame command [" + cl.toString() + "] failed: " + stderr.getOutput());
+    }
+    if (consumer.isUnexpectedContent()) {
+      return;
     }
     List<BlameLine> lines = consumer.getLines();
     if (lines.size() == inputFile.lines() - 1) {

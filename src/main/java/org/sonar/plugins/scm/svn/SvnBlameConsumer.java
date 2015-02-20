@@ -92,8 +92,14 @@ public class SvnBlameConsumer implements StreamConsumer {
   private String author;
   private Date authorDate;
 
+  private boolean unexpectedContent;
+
   @Override
   public void consumeLine(String line) {
+    if (unexpectedContent) {
+      return;
+    }
+
     Matcher matcher;
     if ((matcher = LINE_PATTERN.matcher(line)).find()) {
       String lineNumberStr = matcher.group(1);
@@ -132,7 +138,8 @@ public class SvnBlameConsumer implements StreamConsumer {
       } else if (committerRevision != null) {
         lines.add(new BlameLine().revision(committerRevision).author(committer).date(committerDate));
       } else {
-        throw new IllegalStateException("Unable to blame file " + filename + ". No blame info at line " + lineNumber + ". Is file commited?");
+        LOG.debug("Unable to blame file " + filename + ". No blame info at line " + lineNumber + ". Is file commited? [" + line + "]");
+        unexpectedContent = true;
       }
       insideCommitSection = false;
       insideMergedSection = false;
@@ -155,5 +162,9 @@ public class SvnBlameConsumer implements StreamConsumer {
 
   public List<BlameLine> getLines() {
     return lines;
+  }
+
+  public boolean isUnexpectedContent() {
+    return unexpectedContent;
   }
 }

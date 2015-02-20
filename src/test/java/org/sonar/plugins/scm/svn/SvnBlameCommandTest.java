@@ -51,6 +51,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class SvnBlameCommandTest {
@@ -174,7 +175,7 @@ public class SvnBlameCommandTest {
   }
 
   @Test
-  public void shouldFailIfFileContainsLocalModification() throws IOException {
+  public void shouldNotFailIfFileContainsLocalModification() throws IOException {
     File source = new File(baseDir, "src/foo.xoo");
     FileUtils.write(source, "sample content");
     DefaultInputFile inputFile = new DefaultInputFile("foo", "src/foo.xoo").setAbsolutePath(new File(baseDir, "src/foo.xoo").getAbsolutePath());
@@ -196,11 +197,10 @@ public class SvnBlameCommandTest {
       }
     });
 
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Unable to blame file src/foo.xoo. No blame info at line 2. Is file commited?");
-
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
     new SvnBlameCommand(commandExecutor, mock(SvnConfiguration.class)).blame(input, result);
+
+    verifyNoMoreInteractions(result);
   }
 
   @Test
