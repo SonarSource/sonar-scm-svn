@@ -8,7 +8,7 @@
     <relativePath />
   </parent>
   <artifactId>sonar-scm-svn-plugin</artifactId>
-  <version>1.0</version>
+  <version>1.1-SNAPSHOT</version>
   <name>SonarQube :: Plugins :: SCM :: SVN</name>
   <packaging>sonar-plugin</packaging>
   <description>SVN SCM Provider.</description>
@@ -40,7 +40,7 @@
     <connection>scm:git:git@github.com:SonarCommunity/sonar-scm-svn.git</connection>
     <developerConnection>scm:git:git@github.com:SonarCommunity/sonar-scm-svn.git</developerConnection>
     <url>https://github.com/SonarCommunity/sonar-scm-svn</url>
-    <tag>1.0</tag>
+    <tag>HEAD</tag>
   </scm>
   
   <issueManagement>
