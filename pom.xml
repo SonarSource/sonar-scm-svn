@@ -72,6 +72,11 @@
       <version>${sonar.buildVersion}</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.tmatesoft.svnkit</groupId>
+      <artifactId>svnkit</artifactId>
+      <version>1.8.7</version>
+    </dependency>
 
     <!-- unit tests -->
     <dependency>
