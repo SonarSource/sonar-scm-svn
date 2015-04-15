@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.Settings;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SvnConfigurationTest {
 
@@ -34,16 +34,12 @@ public class SvnConfigurationTest {
 
     assertThat(config.username()).isNull();
     assertThat(config.password()).isNull();
-    assertThat(config.configDir()).isNull();
 
     settings.setProperty(SvnConfiguration.USER_PROP_KEY, "foo");
     assertThat(config.username()).isEqualTo("foo");
 
     settings.setProperty(SvnConfiguration.PASSWORD_PROP_KEY, "pwd");
     assertThat(config.password()).isEqualTo("pwd");
-
-    settings.setProperty(SvnConfiguration.CONFIG_DIR_PROP_KEY, "foo/bar");
-    assertThat(config.configDir()).isEqualTo("foo/bar");
   }
 
 }

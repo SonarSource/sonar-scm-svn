@@ -28,8 +28,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
+import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputFile;
-import org.sonar.api.batch.fs.internal.DefaultFileSystem;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.scm.BlameCommand.BlameInput;
 import org.sonar.api.batch.scm.BlameCommand.BlameOutput;
@@ -53,7 +53,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -70,12 +70,12 @@ public class SvnBlameCommandTest {
   @Rule
   public ExpectedException thrown = ExpectedException.none();
 
-  private DefaultFileSystem fs;
+  private FileSystem fs;
   private BlameInput input;
 
   @Before
   public void prepare() throws IOException {
-    fs = new DefaultFileSystem();
+    fs = mock(FileSystem.class);
     input = mock(BlameInput.class);
     when(input.fileSystem()).thenReturn(fs);
   }
@@ -88,11 +88,10 @@ public class SvnBlameCommandTest {
     String scmUrl = "file:///" + unixPath(new File(repoDir, "repo-svn"));
     File baseDir = new File(checkout(scmUrl), "dummy-svn");
 
-    fs.setBaseDir(baseDir);
+    when(fs.baseDir()).thenReturn(baseDir);
     DefaultInputFile inputFile = new DefaultInputFile("foo", DUMMY_JAVA)
       .setLines(27)
-      .setFile(new File(baseDir, DUMMY_JAVA));
-    fs.add(inputFile);
+      .setModuleBaseDir(baseDir.toPath());
 
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
@@ -150,11 +149,10 @@ public class SvnBlameCommandTest {
     String scmUrl = "file:///" + unixPath(new File(repoDir, "repo-svn"));
     File baseDir = new File(checkout(scmUrl), "dummy-svn/trunk");
 
-    fs.setBaseDir(baseDir);
+    when(fs.baseDir()).thenReturn(baseDir);
     DefaultInputFile inputFile = new DefaultInputFile("foo", DUMMY_JAVA)
       .setLines(27)
-      .setFile(new File(baseDir, DUMMY_JAVA));
-    fs.add(inputFile);
+      .setModuleBaseDir(baseDir.toPath());
 
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
@@ -204,11 +202,10 @@ public class SvnBlameCommandTest {
     String scmUrl = "file:///" + unixPath(new File(repoDir, "repo-svn"));
     File baseDir = new File(checkout(scmUrl), "dummy-svn");
 
-    fs.setBaseDir(baseDir);
+    when(fs.baseDir()).thenReturn(baseDir);
     DefaultInputFile inputFile = new DefaultInputFile("foo", DUMMY_JAVA)
       .setLines(28)
-      .setFile(new File(baseDir, DUMMY_JAVA));
-    fs.add(inputFile);
+      .setModuleBaseDir(baseDir.toPath());
 
     FileUtils.write(new File(baseDir, DUMMY_JAVA), "\n//foo", true);
 
@@ -227,12 +224,11 @@ public class SvnBlameCommandTest {
     String scmUrl = "file:///" + unixPath(new File(repoDir, "repo-svn"));
     File baseDir = new File(checkout(scmUrl), "dummy-svn");
 
-    fs.setBaseDir(baseDir);
+    when(fs.baseDir()).thenReturn(baseDir);
     String relativePath = "src/main/java/org/dummy/Dummy2.java";
     DefaultInputFile inputFile = new DefaultInputFile("foo", relativePath)
       .setLines(28)
-      .setFile(new File(baseDir, relativePath));
-    fs.add(inputFile);
+      .setModuleBaseDir(baseDir.toPath());
 
     FileUtils.write(new File(baseDir, relativePath), "package org.dummy;\npublic class Dummy2 {}");
 

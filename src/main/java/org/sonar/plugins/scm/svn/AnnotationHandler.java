@@ -34,6 +34,7 @@ public class AnnotationHandler implements ISVNAnnotateHandler {
 
   @Override
   public void handleEOF() {
+    // Not used
   }
 
   @Override
@@ -44,12 +45,7 @@ public class AnnotationHandler implements ISVNAnnotateHandler {
   @Override
   public void handleLine(Date date, long revision, String author, String line, Date mergedDate,
     long mergedRevision, String mergedAuthor, String mergedPath, int lineNumber) throws SVNException {
-    BlameLine blameLine = new BlameLine().date(mergedDate).revision(Long.toString(mergedRevision)).author(mergedAuthor);
-    if (lines.size() > lineNumber) {
-      lines.set(lineNumber, blameLine);
-    } else {
-      lines.add(blameLine);
-    }
+    lines.add(new BlameLine().date(mergedDate).revision(Long.toString(mergedRevision)).author(mergedAuthor));
   }
 
   @Override

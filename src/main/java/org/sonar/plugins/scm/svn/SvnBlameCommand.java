@@ -19,22 +19,21 @@
  */
 package org.sonar.plugins.scm.svn;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.scm.BlameCommand;
 import org.sonar.api.batch.scm.BlameLine;
+import org.sonar.api.utils.log.Logger;
+import org.sonar.api.utils.log.Loggers;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager;
 import org.tmatesoft.svn.core.wc.*;
 
-import java.io.File;
 import java.util.List;
 
 public class SvnBlameCommand extends BlameCommand {
 
-  private static final Logger LOG = LoggerFactory.getLogger(SvnBlameCommand.class);
+  private static final Logger LOG = Loggers.get(SvnBlameCommand.class);
   private final SvnConfiguration configuration;
 
   public SvnBlameCommand(SvnConfiguration configuration) {
@@ -90,13 +89,11 @@ public class SvnBlameCommand extends BlameCommand {
 
   public SVNClientManager getClientManager() {
     ISVNOptions options = SVNWCUtil.createDefaultOptions(true);
-    String configDir = configuration.configDir();
-    ISVNAuthenticationManager isvnAuthenticationManager = SVNWCUtil.createDefaultAuthenticationManager(
-      configDir == null ? null : new File(configDir),
+    ISVNAuthenticationManager authManager = SVNWCUtil.createDefaultAuthenticationManager(
+      null,
       configuration.username(),
       configuration.password(),
       false);
-    SVNClientManager svnClientManager = SVNClientManager.newInstance(options, isvnAuthenticationManager);
-    return svnClientManager;
+    return SVNClientManager.newInstance(options, authManager);
   }
 }

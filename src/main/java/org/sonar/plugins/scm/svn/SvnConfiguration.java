@@ -38,7 +38,6 @@ public class SvnConfiguration implements BatchComponent {
   private static final String CATEGORY_SVN = "SVN";
   public static final String USER_PROP_KEY = "sonar.svn.username";
   public static final String PASSWORD_PROP_KEY = "sonar.svn.password.secured";
-  public static final String CONFIG_DIR_PROP_KEY = "sonar.svn.config_dir";
   private final Settings settings;
 
   public SvnConfiguration(Settings settings) {
@@ -64,15 +63,6 @@ public class SvnConfiguration implements BatchComponent {
         .category(CoreProperties.CATEGORY_SCM)
         .subCategory(CATEGORY_SVN)
         .index(1)
-        .build(),
-      PropertyDefinition.builder(CONFIG_DIR_PROP_KEY)
-        .name("Configuration directory")
-        .description("Folder containing configuration files (see --config-dir)")
-        .type(PropertyType.STRING)
-        .onQualifiers(Qualifiers.PROJECT)
-        .category(CoreProperties.CATEGORY_SCM)
-        .subCategory(CATEGORY_SVN)
-        .index(2)
         .build());
   }
 
@@ -84,11 +74,6 @@ public class SvnConfiguration implements BatchComponent {
   @CheckForNull
   public String password() {
     return settings.getString(PASSWORD_PROP_KEY);
-  }
-
-  @CheckForNull
-  public String configDir() {
-    return settings.getString(CONFIG_DIR_PROP_KEY);
   }
 
 }

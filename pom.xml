@@ -40,7 +40,6 @@
     <connection>scm:git:git@github.com:SonarCommunity/sonar-scm-svn.git</connection>
     <developerConnection>scm:git:git@github.com:SonarCommunity/sonar-scm-svn.git</developerConnection>
     <url>https://github.com/SonarCommunity/sonar-scm-svn</url>
-    <tag>HEAD</tag>
   </scm>
   
   <issueManagement>
@@ -54,7 +53,7 @@
   </ciManagement>
 
   <properties>
-    <sonar.buildVersion>5.0</sonar.buildVersion>
+    <sonar.buildVersion>5.1</sonar.buildVersion>
     <sonar.pluginName>SVN</sonar.pluginName>
     <sonar.pluginClass>org.sonar.plugins.scm.svn.SvnPlugin</sonar.pluginClass>
   </properties>
