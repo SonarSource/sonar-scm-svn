@@ -30,9 +30,7 @@ import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager;
 import org.tmatesoft.svn.core.wc.*;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
 
 public class SvnBlameCommand extends BlameCommand {
 
@@ -47,46 +45,28 @@ public class SvnBlameCommand extends BlameCommand {
   public void blame(final BlameInput input, final BlameOutput output) {
     FileSystem fs = input.fileSystem();
     LOG.debug("Working directory: " + fs.baseDir().getAbsolutePath());
-    ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-    List<Future<Void>> tasks = new ArrayList<Future<Void>>();
-    for (InputFile inputFile : input.filesToBlame()) {
-      tasks.add(submitTask(fs, output, executorService, inputFile));
-    }
-
-    waitForTaskToComplete(executorService, tasks);
-  }
-
-  private void waitForTaskToComplete(ExecutorService executorService, List<Future<Void>> tasks) {
-    executorService.shutdown();
-    for (Future<Void> task : tasks) {
-      try {
-        task.get();
-      } catch (ExecutionException e) {
-        // Unwrap ExecutionException
-        throw e.getCause() instanceof RuntimeException ? (RuntimeException) e.getCause() : new IllegalStateException(e.getCause());
-      } catch (InterruptedException e) {
-        throw new IllegalStateException(e);
-      }
-    }
-  }
-
-  private Future<Void> submitTask(final FileSystem fs, final BlameOutput result, ExecutorService executorService, final InputFile inputFile) {
-    return executorService.submit(new Callable<Void>() {
-      @Override
-      public Void call() {
-        blame(fs, inputFile, result);
-        return null;
-      }
-    });
-  }
-
-  private void blame(final FileSystem fs, final InputFile inputFile, final BlameOutput output) {
-    String filename = inputFile.relativePath();
-
-    AnnotationHandler handler = new AnnotationHandler();
     SVNClientManager clientManager = null;
     try {
       clientManager = getClientManager();
+      for (InputFile inputFile : input.filesToBlame()) {
+        blame(clientManager, fs, inputFile, output);
+      }
+    } finally {
+      if (clientManager != null) {
+        try {
+          clientManager.dispose();
+        } catch (Exception e) {
+          LOG.warn("Unable to dispose SVN ClientManager", e);
+        }
+      }
+    }
+  }
+
+  private void blame(SVNClientManager clientManager, FileSystem fs, InputFile inputFile, BlameOutput output) {
+    String filename = inputFile.relativePath();
+
+    AnnotationHandler handler = new AnnotationHandler();
+    try {
       SVNStatusClient statusClient = clientManager.getStatusClient();
       SVNStatus status = statusClient.doStatus(inputFile.file(), false);
       if (status.getContentsStatus() != SVNStatusType.STATUS_NORMAL) {
@@ -98,14 +78,6 @@ public class SvnBlameCommand extends BlameCommand {
       logClient.doAnnotate(inputFile.file(), SVNRevision.UNDEFINED, SVNRevision.create(1), SVNRevision.HEAD, true, true, handler, null);
     } catch (SVNException e) {
       throw new IllegalStateException("Error when executing blame for file " + filename, e);
-    } finally {
-      if (clientManager != null) {
-        try {
-          clientManager.dispose();
-        } catch (Exception e) {
-          LOG.warn("Unable to dispose SVN ClientManager", e);
-        }
-      }
     }
 
     List<BlameLine> lines = handler.getLines();
@@ -119,8 +91,11 @@ public class SvnBlameCommand extends BlameCommand {
   public SVNClientManager getClientManager() {
     ISVNOptions options = SVNWCUtil.createDefaultOptions(true);
     String configDir = configuration.configDir();
-    ISVNAuthenticationManager isvnAuthenticationManager = SVNWCUtil.createDefaultAuthenticationManager(configDir == null ? null : new File(configDir), configuration.username(),
-      configuration.password(), false);
+    ISVNAuthenticationManager isvnAuthenticationManager = SVNWCUtil.createDefaultAuthenticationManager(
+      configDir == null ? null : new File(configDir),
+      configuration.username(),
+      configuration.password(),
+      false);
     SVNClientManager svnClientManager = SVNClientManager.newInstance(options, isvnAuthenticationManager);
     return svnClientManager;
   }
