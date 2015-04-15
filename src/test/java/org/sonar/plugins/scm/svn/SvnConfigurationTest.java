@@ -20,13 +20,30 @@
 package org.sonar.plugins.scm.svn;
 
 import org.junit.Test;
+import org.sonar.api.config.PropertyDefinitions;
+import org.sonar.api.config.Settings;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.fest.assertions.Assertions.assertThat;
 
-public class SvnPluginTest {
+public class SvnConfigurationTest {
 
   @Test
-  public void getExtensions() {
-    assertThat(new SvnPlugin().getExtensions().size()).isGreaterThan(1);
+  public void sanityCheck() {
+    Settings settings = new Settings(new PropertyDefinitions(SvnConfiguration.getProperties()));
+    SvnConfiguration config = new SvnConfiguration(settings);
+
+    assertThat(config.username()).isNull();
+    assertThat(config.password()).isNull();
+    assertThat(config.configDir()).isNull();
+
+    settings.setProperty(SvnConfiguration.USER_PROP_KEY, "foo");
+    assertThat(config.username()).isEqualTo("foo");
+
+    settings.setProperty(SvnConfiguration.PASSWORD_PROP_KEY, "pwd");
+    assertThat(config.password()).isEqualTo("pwd");
+
+    settings.setProperty(SvnConfiguration.CONFIG_DIR_PROP_KEY, "foo/bar");
+    assertThat(config.configDir()).isEqualTo("foo/bar");
   }
+
 }

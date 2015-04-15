@@ -38,7 +38,7 @@ public class AnnotationHandler implements ISVNAnnotateHandler {
 
   @Override
   public void handleLine(Date date, long revision, String author, String line) throws SVNException {
-    handleLine(date, revision, author, line, null, -1, null, null, 0);
+    // deprecated
   }
 
   @Override
