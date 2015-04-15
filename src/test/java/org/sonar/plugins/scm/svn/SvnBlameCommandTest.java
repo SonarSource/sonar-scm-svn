@@ -57,6 +57,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class SvnBlameCommandTest {
@@ -215,38 +216,31 @@ public class SvnBlameCommandTest {
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
     new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
-    ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
-    verify(blameResult).blameResult(eq(inputFile), captor.capture());
-    List<BlameLine> result = captor.getValue();
-    assertThat(result).hasSize(26);
-    Date commitDate = new Date(1342691097393L);
-    assertThat(result).containsExactly(
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"),
-      new BlameLine().date(commitDate).revision("2").author("dgageot"));
+    verifyZeroInteractions(blameResult);
+  }
+
+  @Test
+  public void shouldNotFailOnUncommitedFile() throws Exception {
+    File repoDir = temp.newFolder();
+    javaUnzip(new File("test-repos/repo-svn.zip"), repoDir);
+
+    String scmUrl = "file:///" + unixPath(new File(repoDir, "repo-svn"));
+    File baseDir = new File(checkout(scmUrl), "dummy-svn");
+
+    fs.setBaseDir(baseDir);
+    String relativePath = "src/main/java/org/dummy/Dummy2.java";
+    DefaultInputFile inputFile = new DefaultInputFile("foo", relativePath)
+      .setLines(28)
+      .setFile(new File(baseDir, relativePath));
+    fs.add(inputFile);
+
+    FileUtils.write(new File(baseDir, relativePath), "package org.dummy;\npublic class Dummy2 {}");
+
+    BlameOutput blameResult = mock(BlameOutput.class);
+    when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
+
+    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    verifyZeroInteractions(blameResult);
   }
 
   private static void javaUnzip(File zip, File toDir) {

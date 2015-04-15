@@ -47,25 +47,13 @@ public class SvnBlameCommand extends BlameCommand {
   public void blame(final BlameInput input, final BlameOutput output) {
     FileSystem fs = input.fileSystem();
     LOG.debug("Working directory: " + fs.baseDir().getAbsolutePath());
-    SVNClientManager clientManager = null;
-    try {
-      clientManager = getClientManager();
-      ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
-      List<Future<Void>> tasks = new ArrayList<Future<Void>>();
-      for (InputFile inputFile : input.filesToBlame()) {
-        tasks.add(submitTask(fs, output, executorService, inputFile));
-      }
-
-      waitForTaskToComplete(executorService, tasks);
-    } finally {
-      if (clientManager != null) {
-        try {
-          clientManager.dispose();
-        } catch (Exception e) {
-          LOG.warn("Unable to dispose SVN ClientManager", e);
-        }
-      }
+    ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    List<Future<Void>> tasks = new ArrayList<Future<Void>>();
+    for (InputFile inputFile : input.filesToBlame()) {
+      tasks.add(submitTask(fs, output, executorService, inputFile));
     }
+
+    waitForTaskToComplete(executorService, tasks);
   }
 
   private void waitForTaskToComplete(ExecutorService executorService, List<Future<Void>> tasks) {
@@ -96,12 +84,28 @@ public class SvnBlameCommand extends BlameCommand {
     String filename = inputFile.relativePath();
 
     AnnotationHandler handler = new AnnotationHandler();
+    SVNClientManager clientManager = null;
     try {
-      SVNLogClient logClient = getClientManager().getLogClient();
+      clientManager = getClientManager();
+      SVNStatusClient statusClient = clientManager.getStatusClient();
+      SVNStatus status = statusClient.doStatus(inputFile.file(), false);
+      if (status.getContentsStatus() != SVNStatusType.STATUS_NORMAL) {
+        LOG.debug("File " + inputFile + " is not versionned or contains local modification. Skipping it.");
+        return;
+      }
+      SVNLogClient logClient = clientManager.getLogClient();
       logClient.setDiffOptions(new SVNDiffOptions(true, true, true));
       logClient.doAnnotate(inputFile.file(), SVNRevision.UNDEFINED, SVNRevision.create(1), SVNRevision.HEAD, true, true, handler, null);
     } catch (SVNException e) {
       throw new IllegalStateException("Error when executing blame for file " + filename, e);
+    } finally {
+      if (clientManager != null) {
+        try {
+          clientManager.dispose();
+        } catch (Exception e) {
+          LOG.warn("Unable to dispose SVN ClientManager", e);
+        }
+      }
     }
 
     List<BlameLine> lines = handler.getLines();
