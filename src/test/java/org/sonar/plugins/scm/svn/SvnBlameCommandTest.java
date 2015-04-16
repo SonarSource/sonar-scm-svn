@@ -239,6 +239,29 @@ public class SvnBlameCommandTest {
     verifyZeroInteractions(blameResult);
   }
 
+  @Test
+  public void shouldNotFailOnUncommitedDir() throws Exception {
+    File repoDir = temp.newFolder();
+    javaUnzip(new File("test-repos/repo-svn.zip"), repoDir);
+
+    String scmUrl = "file:///" + unixPath(new File(repoDir, "repo-svn"));
+    File baseDir = new File(checkout(scmUrl), "dummy-svn");
+
+    when(fs.baseDir()).thenReturn(baseDir);
+    String relativePath = "src/main/java/org/dummy2/dummy/Dummy.java";
+    DefaultInputFile inputFile = new DefaultInputFile("foo", relativePath)
+      .setLines(28)
+      .setModuleBaseDir(baseDir.toPath());
+
+    FileUtils.write(new File(baseDir, relativePath), "package org.dummy;\npublic class Dummy {}");
+
+    BlameOutput blameResult = mock(BlameOutput.class);
+    when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
+
+    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    verifyZeroInteractions(blameResult);
+  }
+
   private static void javaUnzip(File zip, File toDir) {
     try {
       ZipFile zipFile = new ZipFile(zip);

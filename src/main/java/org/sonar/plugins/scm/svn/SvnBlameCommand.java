@@ -25,6 +25,7 @@ import org.sonar.api.batch.scm.BlameCommand;
 import org.sonar.api.batch.scm.BlameLine;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
+import org.tmatesoft.svn.core.SVNErrorCode;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager;
 import org.tmatesoft.svn.core.wc.*;
@@ -67,10 +68,18 @@ public class SvnBlameCommand extends BlameCommand {
     AnnotationHandler handler = new AnnotationHandler();
     try {
       SVNStatusClient statusClient = clientManager.getStatusClient();
-      SVNStatus status = statusClient.doStatus(inputFile.file(), false);
-      if (status.getContentsStatus() != SVNStatusType.STATUS_NORMAL) {
-        LOG.debug("File " + inputFile + " is not versionned or contains local modification. Skipping it.");
-        return;
+      try {
+        SVNStatus status = statusClient.doStatus(inputFile.file(), false);
+        if (status.getContentsStatus() != SVNStatusType.STATUS_NORMAL) {
+          LOG.debug("File " + inputFile + " is not versionned or contains local modifications. Skipping it.");
+          return;
+        }
+      } catch (SVNException e) {
+        if (SVNErrorCode.WC_PATH_NOT_FOUND.equals(e.getErrorMessage().getErrorCode())) {
+          LOG.debug("File " + inputFile + " is not versionned. Skipping it.");
+          return;
+        }
+        throw e;
       }
       SVNLogClient logClient = clientManager.getLogClient();
       logClient.setDiffOptions(new SVNDiffOptions(true, true, true));
