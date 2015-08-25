@@ -133,7 +133,7 @@ public class SvnBlameCommandTest {
 
   private File checkout(String scmUrl) throws Exception {
     ISVNOptions options = SVNWCUtil.createDefaultOptions(true);
-    ISVNAuthenticationManager isvnAuthenticationManager = SVNWCUtil.createDefaultAuthenticationManager(null, null, null, false);
+    ISVNAuthenticationManager isvnAuthenticationManager = SVNWCUtil.createDefaultAuthenticationManager(null, null, (char[]) null, false);
     SVNClientManager svnClientManager = SVNClientManager.newInstance(options, isvnAuthenticationManager);
     File out = temp.newFolder();
     svnClientManager.getUpdateClient().doCheckout(SVNURL.parseURIEncoded(scmUrl), out, SVNRevision.HEAD, SVNRevision.HEAD, SVNDepth.INFINITY, false);
