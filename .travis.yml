@@ -5,7 +5,8 @@ install: true
 jdk:
   - oraclejdk7
 
-script: 
+script:
+  - svn --version 
   - ./travis.sh
 
 env:
