@@ -86,7 +86,8 @@ public class SvnBlameCommand extends BlameCommand {
           return;
         }
       } catch (SVNException e) {
-        if (SVNErrorCode.WC_PATH_NOT_FOUND.equals(e.getErrorMessage().getErrorCode())) {
+        if (SVNErrorCode.WC_PATH_NOT_FOUND.equals(e.getErrorMessage().getErrorCode())
+          || SVNErrorCode.WC_NOT_WORKING_COPY.equals(e.getErrorMessage().getErrorCode())) {
           LOG.debug("File " + inputFile + " is not versionned. Skipping it.");
           return;
         }
@@ -94,7 +95,7 @@ public class SvnBlameCommand extends BlameCommand {
       }
       SVNLogClient logClient = clientManager.getLogClient();
       logClient.setDiffOptions(new SVNDiffOptions(true, true, true));
-      logClient.doAnnotate(inputFile.file(), SVNRevision.UNDEFINED, SVNRevision.create(1), SVNRevision.WORKING, true, true, handler, null);
+      logClient.doAnnotate(inputFile.file(), SVNRevision.UNDEFINED, SVNRevision.create(1), SVNRevision.BASE, true, true, handler, null);
     } catch (SVNException e) {
       throw new IllegalStateException("Error when executing blame for file " + filename, e);
     }
@@ -109,10 +110,12 @@ public class SvnBlameCommand extends BlameCommand {
 
   public SVNClientManager getClientManager() {
     ISVNOptions options = SVNWCUtil.createDefaultOptions(true);
+    String password = configuration.password();
+    final char[] passwordValue = password != null ? password.toCharArray() : null;
     ISVNAuthenticationManager authManager = SVNWCUtil.createDefaultAuthenticationManager(
       null,
       configuration.username(),
-      configuration.password(),
+      passwordValue,
       false);
     return SVNClientManager.newInstance(options, authManager);
   }

@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
@@ -37,6 +38,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 import org.mockito.ArgumentCaptor;
 import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputFile;
@@ -47,10 +51,14 @@ import org.sonar.api.batch.scm.BlameLine;
 import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNURL;
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager;
+import org.tmatesoft.svn.core.internal.wc2.compat.SvnCodec;
 import org.tmatesoft.svn.core.wc.ISVNOptions;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNRevision;
+import org.tmatesoft.svn.core.wc.SVNUpdateClient;
 import org.tmatesoft.svn.core.wc.SVNWCUtil;
+import org.tmatesoft.svn.core.wc2.SvnCheckout;
+import org.tmatesoft.svn.core.wc2.SvnTarget;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
@@ -59,6 +67,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+@RunWith(Parameterized.class)
 public class SvnBlameCommandTest {
 
   private static final String DUMMY_JAVA = "src/main/java/org/dummy/Dummy.java";
@@ -71,6 +80,18 @@ public class SvnBlameCommandTest {
 
   private FileSystem fs;
   private BlameInput input;
+  private String serverVersion;
+  private int wcVersion;
+
+  @Parameters(name = "SVN server version {0}, WC version {1}")
+  public static Iterable<Object[]> data() {
+    return Arrays.asList(new Object[][] {{"1.6", 10}, {"1.8", 31}});
+  }
+
+  public SvnBlameCommandTest(String serverVersion, int wcVersion) {
+    this.serverVersion = serverVersion;
+    this.wcVersion = wcVersion;
+  }
 
   @Before
   public void prepare() throws IOException {
@@ -81,8 +102,7 @@ public class SvnBlameCommandTest {
 
   @Test
   public void testParsingOfOutput() throws Exception {
-    File repoDir = temp.newFolder();
-    javaUnzip(new File("test-repos/repo-svn.zip"), repoDir);
+    File repoDir = unzip("repo-svn.zip");
 
     String scmUrl = "file:///" + unixPath(new File(repoDir, "repo-svn"));
     File baseDir = new File(checkout(scmUrl), "dummy-svn");
@@ -131,19 +151,35 @@ public class SvnBlameCommandTest {
       new BlameLine().date(commitDate).revision("2").author("dgageot"));
   }
 
+  private File unzip(String repoName) throws IOException {
+    File repoDir = temp.newFolder();
+    javaUnzip(Paths.get("test-repos", serverVersion, repoName).toFile(), repoDir);
+    return repoDir;
+  }
+
   private File checkout(String scmUrl) throws Exception {
     ISVNOptions options = SVNWCUtil.createDefaultOptions(true);
     ISVNAuthenticationManager isvnAuthenticationManager = SVNWCUtil.createDefaultAuthenticationManager(null, null, (char[]) null, false);
     SVNClientManager svnClientManager = SVNClientManager.newInstance(options, isvnAuthenticationManager);
     File out = temp.newFolder();
-    svnClientManager.getUpdateClient().doCheckout(SVNURL.parseURIEncoded(scmUrl), out, SVNRevision.HEAD, SVNRevision.HEAD, SVNDepth.INFINITY, false);
+    SVNUpdateClient updateClient = svnClientManager.getUpdateClient();
+    SvnCheckout co = updateClient.getOperationsFactory().createCheckout();
+    co.setUpdateLocksOnDemand(updateClient.isUpdateLocksOnDemand());
+    co.setSource(SvnTarget.fromURL(SVNURL.parseURIEncoded(scmUrl), SVNRevision.HEAD));
+    co.setSingleTarget(SvnTarget.fromFile(out));
+    co.setRevision(SVNRevision.HEAD);
+    co.setDepth(SVNDepth.INFINITY);
+    co.setAllowUnversionedObstructions(false);
+    co.setIgnoreExternals(updateClient.isIgnoreExternals());
+    co.setExternalsHandler(SvnCodec.externalsHandler(updateClient.getExternalsHandler()));
+    co.setTargetWorkingCopyFormat(wcVersion);
+    co.run();
     return out;
   }
 
   @Test
   public void testParsingOfOutputWithMergeHistory() throws Exception {
-    File repoDir = temp.newFolder();
-    javaUnzip(new File("test-repos/repo-svn-with-merge.zip"), repoDir);
+    File repoDir = unzip("repo-svn-with-merge.zip");
 
     String scmUrl = "file:///" + unixPath(new File(repoDir, "repo-svn"));
     File baseDir = new File(checkout(scmUrl), "dummy-svn/trunk");
@@ -195,8 +231,7 @@ public class SvnBlameCommandTest {
 
   @Test
   public void shouldNotFailIfFileContainsLocalModification() throws Exception {
-    File repoDir = temp.newFolder();
-    javaUnzip(new File("test-repos/repo-svn.zip"), repoDir);
+    File repoDir = unzip("repo-svn.zip");
 
     String scmUrl = "file:///" + unixPath(new File(repoDir, "repo-svn"));
     File baseDir = new File(checkout(scmUrl), "dummy-svn");
@@ -218,8 +253,7 @@ public class SvnBlameCommandTest {
   // SONARSCSVN-7
   @Test
   public void shouldNotFailOnWrongFilename() throws Exception {
-    File repoDir = temp.newFolder();
-    javaUnzip(new File("test-repos/repo-svn.zip"), repoDir);
+    File repoDir = unzip("repo-svn.zip");
 
     String scmUrl = "file:///" + unixPath(new File(repoDir, "repo-svn"));
     File baseDir = new File(checkout(scmUrl), "dummy-svn");
@@ -238,8 +272,7 @@ public class SvnBlameCommandTest {
 
   @Test
   public void shouldNotFailOnUncommitedFile() throws Exception {
-    File repoDir = temp.newFolder();
-    javaUnzip(new File("test-repos/repo-svn.zip"), repoDir);
+    File repoDir = unzip("repo-svn.zip");
 
     String scmUrl = "file:///" + unixPath(new File(repoDir, "repo-svn"));
     File baseDir = new File(checkout(scmUrl), "dummy-svn");
@@ -261,8 +294,7 @@ public class SvnBlameCommandTest {
 
   @Test
   public void shouldNotFailOnUncommitedDir() throws Exception {
-    File repoDir = temp.newFolder();
-    javaUnzip(new File("test-repos/repo-svn.zip"), repoDir);
+    File repoDir = unzip("repo-svn.zip");
 
     String scmUrl = "file:///" + unixPath(new File(repoDir, "repo-svn"));
     File baseDir = new File(checkout(scmUrl), "dummy-svn");
