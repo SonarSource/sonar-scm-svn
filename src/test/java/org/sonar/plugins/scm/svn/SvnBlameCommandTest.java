@@ -20,6 +20,16 @@
 package org.sonar.plugins.scm.svn;
 
 import com.google.common.io.Closeables;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -41,17 +51,6 @@ import org.tmatesoft.svn.core.wc.ISVNOptions;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNRevision;
 import org.tmatesoft.svn.core.wc.SVNWCUtil;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
@@ -208,6 +207,27 @@ public class SvnBlameCommandTest {
       .setModuleBaseDir(baseDir.toPath());
 
     FileUtils.write(new File(baseDir, DUMMY_JAVA), "\n//foo", true);
+
+    BlameOutput blameResult = mock(BlameOutput.class);
+    when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
+
+    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    verifyZeroInteractions(blameResult);
+  }
+
+  // SONARSCSVN-7
+  @Test
+  public void shouldNotFailOnWrongFilename() throws Exception {
+    File repoDir = temp.newFolder();
+    javaUnzip(new File("test-repos/repo-svn.zip"), repoDir);
+
+    String scmUrl = "file:///" + unixPath(new File(repoDir, "repo-svn"));
+    File baseDir = new File(checkout(scmUrl), "dummy-svn");
+
+    when(fs.baseDir()).thenReturn(baseDir);
+    DefaultInputFile inputFile = new DefaultInputFile("foo", DUMMY_JAVA.toLowerCase())
+      .setLines(27)
+      .setModuleBaseDir(baseDir.toPath());
 
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));

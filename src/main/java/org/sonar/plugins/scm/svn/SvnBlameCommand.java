@@ -77,6 +77,10 @@ public class SvnBlameCommand extends BlameCommand {
       SVNStatusClient statusClient = clientManager.getStatusClient();
       try {
         SVNStatus status = statusClient.doStatus(inputFile.file(), false);
+        if (status == null) {
+          LOG.debug("File " + inputFile + " returns no svn state. Skipping it.");
+          return;
+        }
         if (status.getContentsStatus() != SVNStatusType.STATUS_NORMAL) {
           LOG.debug("File " + inputFile + " is not versionned or contains local modifications. Skipping it.");
           return;
