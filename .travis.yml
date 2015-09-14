@@ -6,7 +6,6 @@ jdk:
   - oraclejdk7
 
 script:
-  - svn --version 
   - ./travis.sh
 
 env:
