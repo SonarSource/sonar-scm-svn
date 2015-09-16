@@ -19,14 +19,13 @@
  */
 package org.sonar.plugins.scm.svn;
 
-import org.sonar.api.batch.scm.BlameLine;
-import org.tmatesoft.svn.core.SVNException;
-import org.tmatesoft.svn.core.wc.ISVNAnnotateHandler;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import org.sonar.api.batch.scm.BlameLine;
+import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.wc.ISVNAnnotateHandler;
 
 public class AnnotationHandler implements ISVNAnnotateHandler {
 
@@ -45,7 +44,11 @@ public class AnnotationHandler implements ISVNAnnotateHandler {
   @Override
   public void handleLine(Date date, long revision, String author, String line, Date mergedDate,
     long mergedRevision, String mergedAuthor, String mergedPath, int lineNumber) throws SVNException {
-    lines.add(new BlameLine().date(mergedDate).revision(Long.toString(mergedRevision)).author(mergedAuthor));
+    if (revision > mergedRevision) {
+      lines.add(new BlameLine().date(mergedDate).revision(Long.toString(mergedRevision)).author(mergedAuthor));
+    } else {
+      lines.add(new BlameLine().date(date).revision(Long.toString(revision)).author(author));
+    }
   }
 
   @Override
