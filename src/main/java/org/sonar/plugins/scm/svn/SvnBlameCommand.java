@@ -72,7 +72,8 @@ public class SvnBlameCommand extends BlameCommand {
   private void blame(SVNClientManager clientManager, FileSystem fs, InputFile inputFile, BlameOutput output) {
     String filename = inputFile.relativePath();
 
-    AnnotationHandler handler = new AnnotationHandler();
+    boolean useMergeHistory = configuration.useMergeHistory();
+    AnnotationHandler handler = new AnnotationHandler(useMergeHistory);
     try {
       SVNStatusClient statusClient = clientManager.getStatusClient();
       try {
@@ -95,7 +96,7 @@ public class SvnBlameCommand extends BlameCommand {
       }
       SVNLogClient logClient = clientManager.getLogClient();
       logClient.setDiffOptions(new SVNDiffOptions(true, true, true));
-      logClient.doAnnotate(inputFile.file(), SVNRevision.UNDEFINED, SVNRevision.create(1), SVNRevision.BASE, true, true, handler, null);
+      logClient.doAnnotate(inputFile.file(), SVNRevision.UNDEFINED, SVNRevision.create(1), SVNRevision.BASE, true, useMergeHistory, handler, null);
     } catch (SVNException e) {
       throw new IllegalStateException("Error when executing blame for file " + filename, e);
     }

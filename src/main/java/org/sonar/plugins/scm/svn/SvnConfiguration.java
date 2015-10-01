@@ -38,6 +38,7 @@ public class SvnConfiguration implements BatchComponent {
   private static final String CATEGORY_SVN = "SVN";
   public static final String USER_PROP_KEY = "sonar.svn.username";
   public static final String PASSWORD_PROP_KEY = "sonar.svn.password.secured";
+  public static final String USE_MERGE_HISTORY_KEY = "sonar.svn.use_merge_history";
   private final Settings settings;
 
   public SvnConfiguration(Settings settings) {
@@ -63,6 +64,16 @@ public class SvnConfiguration implements BatchComponent {
         .category(CoreProperties.CATEGORY_SCM)
         .subCategory(CATEGORY_SVN)
         .index(1)
+        .build(),
+      PropertyDefinition.builder(USE_MERGE_HISTORY_KEY)
+        .name("Use merge history for blame")
+        .description("Use merge history to get real author of a modification instead of committer of the merge.")
+        .type(PropertyType.BOOLEAN)
+        .defaultValue("true")
+        .onQualifiers(Qualifiers.PROJECT)
+        .category(CoreProperties.CATEGORY_SCM)
+        .subCategory(CATEGORY_SVN)
+        .index(2)
         .build());
   }
 
@@ -76,4 +87,7 @@ public class SvnConfiguration implements BatchComponent {
     return settings.getString(PASSWORD_PROP_KEY);
   }
 
+  public boolean useMergeHistory() {
+    return settings.getBoolean(USE_MERGE_HISTORY_KEY);
+  }
 }
