@@ -30,7 +30,12 @@ import java.util.List;
 
 public class AnnotationHandler implements ISVNAnnotateHandler {
 
+  private boolean useMergeHistory;
   private List<BlameLine> lines = new ArrayList<BlameLine>();
+
+  public AnnotationHandler(boolean useMergeHistory) {
+    this.useMergeHistory = useMergeHistory;
+  }
 
   @Override
   public void handleEOF() {
@@ -45,7 +50,11 @@ public class AnnotationHandler implements ISVNAnnotateHandler {
   @Override
   public void handleLine(Date date, long revision, String author, String line, Date mergedDate,
     long mergedRevision, String mergedAuthor, String mergedPath, int lineNumber) throws SVNException {
-    lines.add(new BlameLine().date(mergedDate).revision(Long.toString(mergedRevision)).author(mergedAuthor));
+    if (useMergeHistory) {
+      lines.add(new BlameLine().date(mergedDate).revision(Long.toString(mergedRevision)).author(mergedAuthor));
+    } else {
+      lines.add(new BlameLine().date(date).revision(Long.toString(revision)).author(author));
+    }
   }
 
   @Override

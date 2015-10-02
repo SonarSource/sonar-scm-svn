@@ -115,7 +115,10 @@ public class SvnBlameCommandTest {
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    final SvnConfiguration configuration = mock(SvnConfiguration.class);
+    when(configuration.useMergeHistory()).thenReturn(true);
+
+    new SvnBlameCommand(configuration).blame(input, blameResult);
     ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
     verify(blameResult).blameResult(eq(inputFile), captor.capture());
     List<BlameLine> result = captor.getValue();
@@ -192,7 +195,10 @@ public class SvnBlameCommandTest {
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    final SvnConfiguration configuration = mock(SvnConfiguration.class);
+    when(configuration.useMergeHistory()).thenReturn(true);
+
+    new SvnBlameCommand(configuration).blame(input, blameResult);
     ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
     verify(blameResult).blameResult(eq(inputFile), captor.capture());
     List<BlameLine> result = captor.getValue();
@@ -227,6 +233,61 @@ public class SvnBlameCommandTest {
       new BlameLine().date(commitDate).revision("2").author("dgageot"),
       new BlameLine().date(commitDate).revision("2").author("dgageot"),
       new BlameLine().date(commitDate).revision("2").author("dgageot"));
+  }
+
+  @Test
+  public void testParsingOfOutputWithMergeHistoryDisabled() throws Exception {
+    File repoDir = unzip("repo-svn-with-merge.zip");
+
+    String scmUrl = "file:///" + unixPath(new File(repoDir, "repo-svn"));
+    File baseDir = new File(checkout(scmUrl), "dummy-svn/trunk");
+
+    when(fs.baseDir()).thenReturn(baseDir);
+    DefaultInputFile inputFile = new DefaultInputFile("foo", DUMMY_JAVA)
+            .setLines(27)
+            .setModuleBaseDir(baseDir.toPath());
+
+    BlameOutput blameResult = mock(BlameOutput.class);
+    when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
+
+    final SvnConfiguration configuration = mock(SvnConfiguration.class);
+    when(configuration.useMergeHistory()).thenReturn(false);
+
+    new SvnBlameCommand(configuration).blame(input, blameResult);
+    ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+    verify(blameResult).blameResult(eq(inputFile), captor.capture());
+    List<BlameLine> result = captor.getValue();
+    assertThat(result).hasSize(27);
+    Date commitDate = new Date(1342691097393L);
+    Date revision7Date = new Date(1415262286278L);
+    assertThat(result).containsExactly(
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(revision7Date).revision("7").author("merge-bot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(revision7Date).revision("7").author("merge-bot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"),
+            new BlameLine().date(commitDate).revision("2").author("dgageot"));
   }
 
   @Test
