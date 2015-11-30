@@ -38,9 +38,9 @@
   </developers>
 
   <scm>
-    <connection>scm:git:git@github.com:SonarCommunity/sonar-scm-svn.git</connection>
-    <developerConnection>scm:git:git@github.com:SonarCommunity/sonar-scm-svn.git</developerConnection>
-    <url>https://github.com/SonarCommunity/sonar-scm-svn</url>
+    <connection>scm:git:git@github.com:SonarSource/sonar-scm-svn.git</connection>
+    <developerConnection>scm:git:git@github.com:SonarSource/sonar-scm-svn.git</developerConnection>
+    <url>https://github.com/SonarSource/sonar-scm-svn</url>
     <tag>HEAD</tag>
   </scm>
   
@@ -51,7 +51,7 @@
   
   <ciManagement>
     <system>Travis</system>
-    <url>https://travis-ci.org/SonarCommunity/sonar-scm-svn</url>
+    <url>https://travis-ci.org/SonarSource/sonar-scm-svn</url>
   </ciManagement>
 
   <properties>
