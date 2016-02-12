@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>23</version>
+    <version>28</version>
     <relativePath />
   </parent>
   <groupId>org.sonarsource.scm.svn</groupId>
@@ -100,4 +100,12 @@
     </dependency>
   </dependencies>
 
+  <profiles>
+    <profile>
+      <id>its</id>
+      <modules>
+        <module>its</module>
+      </modules>
+    </profile>
+  </profiles>
 </project>

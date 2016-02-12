@@ -1,7 +1,7 @@
 /*
  * SVN :: Integration Tests
- * Copyright (C) 2014 ${owner}
- * sonarqube@googlegroups.com
+ * Copyright (C) 2014-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,9 +13,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package com.sonarsource.it.scm;
 
@@ -79,25 +79,9 @@ public class SvnTest {
 
   public static final File REPO_DIR = new File("scm-repo");
 
-  private static Version artifactVersion;
-
-  private static Version artifactVersion() {
-    if (artifactVersion == null) {
-      try (FileInputStream fis = new FileInputStream(new File("../target/maven-archiver/pom.properties"))) {
-        Properties props = new Properties();
-        props.load(fis);
-        artifactVersion = Version.create(props.getProperty("version"));
-        return artifactVersion;
-      } catch (IOException e) {
-        throw new IllegalStateException(e);
-      }
-    }
-    return artifactVersion;
-  }
-
   @ClassRule
   public static Orchestrator orchestrator = Orchestrator.builderEnv()
-    .addPlugin(FileLocation.of("../target/sonar-scm-svn-plugin-" + artifactVersion() + ".jar"))
+    .addPlugin(FileLocation.byWildcardMavenFilename(new File("../sonar-scm-svn-plugin/target"), "sonar-scm-svn-plugin-*.jar"))
     .setOrchestratorProperty("javaVersion", "LATEST_RELEASE")
     .addPlugin("java")
     .build();
