@@ -9,17 +9,17 @@ script:
   - ./travis.sh
 
 env:
-  matrix:
-    - RUN_ITS=false
-    - RUN_ITS=true SQ_VERSION=5.1
-    - RUN_ITS=true SQ_VERSION=DEV
+  - TARGET=CI
+  - TARGET=IT SQ_VERSION=5.1
+  - TARGET=IT SQ_VERSION=DEV
 
 matrix:
   fast_finish: true
 
 cache:
   directories:
-    - '$HOME/.m2/repository'
+    - $HOME/.m2/repository
+    - $HOME/.sonar
 
 notifications:
   email: false

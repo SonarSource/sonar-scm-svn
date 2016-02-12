@@ -2,23 +2,31 @@
 
 set -euo pipefail
 
-function installTravisTools {
+function configureTravis {
   mkdir ~/.local
-  curl -sSL https://github.com/SonarSource/travis-utils/tarball/v21 | tar zx --strip-components 1 -C ~/.local                                                    
+  curl -sSL https://github.com/SonarSource/travis-utils/tarball/v26 | tar zx --strip-components 1 -C ~/.local
   source ~/.local/bin/install                                                                                                                                    
 }
+configureTravis
 
-mvn verify -B -e -V                                                                                                                                              
+case "$TARGET" in
 
-if [ "${RUN_ITS}" == "true" ]
-then
-  installTravisTools
+CI)
+  regular_mvn_build_deploy_analyze
+  ;;
 
-  if [ "${SQ_VERSION}" == "DEV" ]
-  then
-    build_snapshot "SonarSource/sonarqube"
-  fi
+IT)
+  start_xvfb
 
-  cd its  
-  mvn -Dsonar.runtimeVersion=$SQ_VERSION -Dmaven.test.redirectTestOutputToFile=false verify
-fi
+  mvn verify -Dsource.skip=true -Denforcer.skip=true -Danimal.sniffer.skip=true -Dmaven.test.skip=true -B -e -V
+
+  cd its
+  mvn -Dsonar.runtimeVersion="$SQ_VERSION" -Dmaven.test.redirectTestOutputToFile=false verify -B -e -V
+  ;;
+
+*)
+  echo "Unexpected TARGET value: $TARGET"
+  exit 1
+  ;;
+
+esac
