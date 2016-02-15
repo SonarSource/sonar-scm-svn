@@ -58,6 +58,9 @@
     <sonar.buildVersion>5.1</sonar.buildVersion>
     <sonar.pluginName>SVN</sonar.pluginName>
     <sonar.pluginClass>org.sonar.plugins.scm.svn.SvnPlugin</sonar.pluginClass>
+
+    <!-- used for deployment to SonarSource Artifactory -->
+    <gitRepositoryName>sonar-scm-svn</gitRepositoryName>
   </properties>
 
   <dependencies>
