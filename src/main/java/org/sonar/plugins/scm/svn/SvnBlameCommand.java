@@ -72,6 +72,8 @@ public class SvnBlameCommand extends BlameCommand {
   private void blame(SVNClientManager clientManager, FileSystem fs, InputFile inputFile, BlameOutput output) {
     String filename = inputFile.relativePath();
 
+    LOG.debug("Annotate file {}", filename);
+
     AnnotationHandler handler = new AnnotationHandler();
     try {
       SVNStatusClient statusClient = clientManager.getStatusClient();
@@ -112,10 +114,14 @@ public class SvnBlameCommand extends BlameCommand {
     ISVNOptions options = SVNWCUtil.createDefaultOptions(true);
     String password = configuration.password();
     final char[] passwordValue = password != null ? password.toCharArray() : null;
+    String passPhrase = configuration.passPhrase();
+    final char[] passPhraseValue = passPhrase != null ? passPhrase.toCharArray() : null;
     ISVNAuthenticationManager authManager = SVNWCUtil.createDefaultAuthenticationManager(
       null,
       configuration.username(),
       passwordValue,
+      configuration.privateKey(),
+      passPhraseValue,
       false);
     return SVNClientManager.newInstance(options, authManager);
   }
