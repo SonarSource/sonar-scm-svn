@@ -20,6 +20,9 @@
 package org.sonar.plugins.scm.svn;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.util.List;
+import javax.annotation.CheckForNull;
 import org.sonar.api.BatchComponent;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.PropertyType;
@@ -28,16 +31,14 @@ import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.Settings;
 import org.sonar.api.resources.Qualifiers;
 
-import javax.annotation.CheckForNull;
-
-import java.util.List;
-
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class SvnConfiguration implements BatchComponent {
 
   private static final String CATEGORY_SVN = "SVN";
   public static final String USER_PROP_KEY = "sonar.svn.username";
+  public static final String PRIVATE_KEY_PATH_PROP_KEY = "sonar.svn.privateKeyPath";
   public static final String PASSWORD_PROP_KEY = "sonar.svn.password.secured";
+  public static final String PASSPHRASE_PROP_KEY = "sonar.svn.passphrase.secured";
   private final Settings settings;
 
   public SvnConfiguration(Settings settings) {
@@ -48,7 +49,7 @@ public class SvnConfiguration implements BatchComponent {
     return ImmutableList.of(
       PropertyDefinition.builder(USER_PROP_KEY)
         .name("Username")
-        .description("Username to be used for SVN authentication")
+        .description("Username to be used for SVN server authentication")
         .type(PropertyType.STRING)
         .onQualifiers(Qualifiers.PROJECT)
         .category(CoreProperties.CATEGORY_SCM)
@@ -57,12 +58,30 @@ public class SvnConfiguration implements BatchComponent {
         .build(),
       PropertyDefinition.builder(PASSWORD_PROP_KEY)
         .name("Password")
-        .description("Password to be used for SVN authentication")
+        .description("Password to be used for SVN server authentication")
         .type(PropertyType.PASSWORD)
         .onQualifiers(Qualifiers.PROJECT)
         .category(CoreProperties.CATEGORY_SCM)
         .subCategory(CATEGORY_SVN)
         .index(1)
+        .build(),
+      PropertyDefinition.builder(PRIVATE_KEY_PATH_PROP_KEY)
+        .name("Path to private key file")
+        .description("Can be used instead of password for SVN+SSH authentication")
+        .type(PropertyType.STRING)
+        .onQualifiers(Qualifiers.PROJECT)
+        .category(CoreProperties.CATEGORY_SCM)
+        .subCategory(CATEGORY_SVN)
+        .index(2)
+        .build(),
+      PropertyDefinition.builder(PASSPHRASE_PROP_KEY)
+        .name("Passphrase")
+        .description("Optional passphrase of your private key file")
+        .type(PropertyType.PASSWORD)
+        .onQualifiers(Qualifiers.PROJECT)
+        .category(CoreProperties.CATEGORY_SCM)
+        .subCategory(CATEGORY_SVN)
+        .index(3)
         .build());
   }
 
@@ -74,6 +93,16 @@ public class SvnConfiguration implements BatchComponent {
   @CheckForNull
   public String password() {
     return settings.getString(PASSWORD_PROP_KEY);
+  }
+
+  @CheckForNull
+  public File privateKey() {
+    return settings.hasKey(PRIVATE_KEY_PATH_PROP_KEY) ? new File(settings.getString(PRIVATE_KEY_PATH_PROP_KEY)) : null;
+  }
+
+  @CheckForNull
+  public String passPhrase() {
+    return settings.getString(PASSPHRASE_PROP_KEY);
   }
 
 }

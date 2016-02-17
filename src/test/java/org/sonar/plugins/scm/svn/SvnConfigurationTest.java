@@ -19,6 +19,7 @@
  */
 package org.sonar.plugins.scm.svn;
 
+import java.io.File;
 import org.junit.Test;
 import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.Settings;
@@ -40,6 +41,13 @@ public class SvnConfigurationTest {
 
     settings.setProperty(SvnConfiguration.PASSWORD_PROP_KEY, "pwd");
     assertThat(config.password()).isEqualTo("pwd");
+
+    settings.setProperty(SvnConfiguration.PASSPHRASE_PROP_KEY, "pass");
+    assertThat(config.passPhrase()).isEqualTo("pass");
+
+    assertThat(config.privateKey()).isNull();
+    settings.setProperty(SvnConfiguration.PRIVATE_KEY_PATH_PROP_KEY, "/home/julien/.ssh/id_rsa");
+    assertThat(config.privateKey()).isEqualTo(new File("/home/julien/.ssh/id_rsa"));
   }
 
 }
