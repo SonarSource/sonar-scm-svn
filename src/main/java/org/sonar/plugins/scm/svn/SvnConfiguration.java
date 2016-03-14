@@ -50,7 +50,7 @@ public class SvnConfiguration implements BatchComponent {
     return ImmutableList.of(
       PropertyDefinition.builder(USER_PROP_KEY)
         .name("Username")
-        .description("Username to be used for SVN server authentication")
+        .description("Username to be used for SVN server or SVN+SSH authentication")
         .type(PropertyType.STRING)
         .onQualifiers(Qualifiers.PROJECT)
         .category(CoreProperties.CATEGORY_SCM)
@@ -59,7 +59,7 @@ public class SvnConfiguration implements BatchComponent {
         .build(),
       PropertyDefinition.builder(PASSWORD_PROP_KEY)
         .name("Password")
-        .description("Password to be used for SVN server authentication")
+        .description("Password to be used for SVN server or SVN+SSH authentication")
         .type(PropertyType.PASSWORD)
         .onQualifiers(Qualifiers.PROJECT)
         .category(CoreProperties.CATEGORY_SCM)
