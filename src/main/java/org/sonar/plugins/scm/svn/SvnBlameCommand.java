@@ -56,7 +56,7 @@ public class SvnBlameCommand extends BlameCommand {
     try {
       clientManager = getClientManager();
       for (InputFile inputFile : input.filesToBlame()) {
-        blame(clientManager, fs, inputFile, output);
+        blame(clientManager, inputFile, output);
       }
     } finally {
       if (clientManager != null) {
@@ -69,7 +69,7 @@ public class SvnBlameCommand extends BlameCommand {
     }
   }
 
-  private void blame(SVNClientManager clientManager, FileSystem fs, InputFile inputFile, BlameOutput output) {
+  private static void blame(SVNClientManager clientManager, InputFile inputFile, BlameOutput output) {
     String filename = inputFile.relativePath();
 
     LOG.debug("Annotate file {}", filename);
@@ -80,17 +80,17 @@ public class SvnBlameCommand extends BlameCommand {
       try {
         SVNStatus status = statusClient.doStatus(inputFile.file(), false);
         if (status == null) {
-          LOG.debug("File " + inputFile + " returns no svn state. Skipping it.");
+          LOG.debug("File {} returns no svn state. Skipping it.", inputFile);
           return;
         }
         if (status.getContentsStatus() != SVNStatusType.STATUS_NORMAL) {
-          LOG.debug("File " + inputFile + " is not versionned or contains local modifications. Skipping it.");
+          LOG.debug("File {} is not versionned or contains local modifications. Skipping it.", inputFile);
           return;
         }
       } catch (SVNException e) {
         if (SVNErrorCode.WC_PATH_NOT_FOUND.equals(e.getErrorMessage().getErrorCode())
           || SVNErrorCode.WC_NOT_WORKING_COPY.equals(e.getErrorMessage().getErrorCode())) {
-          LOG.debug("File " + inputFile + " is not versionned. Skipping it.");
+          LOG.debug("File {} is not versionned. Skipping it.", inputFile);
           return;
         }
         throw e;

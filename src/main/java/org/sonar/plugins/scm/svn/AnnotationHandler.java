@@ -19,18 +19,17 @@
  */
 package org.sonar.plugins.scm.svn;
 
-import org.sonar.api.batch.scm.BlameLine;
-import org.tmatesoft.svn.core.SVNException;
-import org.tmatesoft.svn.core.wc.ISVNAnnotateHandler;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import org.sonar.api.batch.scm.BlameLine;
+import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.wc.ISVNAnnotateHandler;
 
 public class AnnotationHandler implements ISVNAnnotateHandler {
 
-  private List<BlameLine> lines = new ArrayList<BlameLine>();
+  private List<BlameLine> lines = new ArrayList<>();
 
   @Override
   public void handleEOF() {
