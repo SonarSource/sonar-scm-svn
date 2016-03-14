@@ -20,16 +20,22 @@
 package org.sonar.plugins.scm.svn;
 
 import java.io.File;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.Settings;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class SvnConfigurationTest {
 
+  @Rule
+  public TemporaryFolder temp = new TemporaryFolder();
+
   @Test
-  public void sanityCheck() {
+  public void sanityCheck() throws Exception {
     Settings settings = new Settings(new PropertyDefinitions(SvnConfiguration.getProperties()));
     SvnConfiguration config = new SvnConfiguration(settings);
 
@@ -46,8 +52,18 @@ public class SvnConfigurationTest {
     assertThat(config.passPhrase()).isEqualTo("pass");
 
     assertThat(config.privateKey()).isNull();
-    settings.setProperty(SvnConfiguration.PRIVATE_KEY_PATH_PROP_KEY, "/home/julien/.ssh/id_rsa");
-    assertThat(config.privateKey()).isEqualTo(new File("/home/julien/.ssh/id_rsa"));
+    File fakeKey = temp.newFile();
+    settings.setProperty(SvnConfiguration.PRIVATE_KEY_PATH_PROP_KEY, fakeKey.getAbsolutePath());
+    assertThat(config.privateKey()).isEqualTo(fakeKey);
+
+    settings.setProperty(SvnConfiguration.PRIVATE_KEY_PATH_PROP_KEY, "/not/exists");
+    try {
+      config.privateKey();
+      fail("Expected exception");
+    } catch (Exception e) {
+      assertThat(e).hasMessage("Unable to read private key from '/not/exists'");
+    }
+
   }
 
 }

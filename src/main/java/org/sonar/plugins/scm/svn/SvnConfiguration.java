@@ -30,6 +30,7 @@ import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.Settings;
 import org.sonar.api.resources.Qualifiers;
+import org.sonar.api.utils.MessageException;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class SvnConfiguration implements BatchComponent {
@@ -97,7 +98,14 @@ public class SvnConfiguration implements BatchComponent {
 
   @CheckForNull
   public File privateKey() {
-    return settings.hasKey(PRIVATE_KEY_PATH_PROP_KEY) ? new File(settings.getString(PRIVATE_KEY_PATH_PROP_KEY)) : null;
+    if (settings.hasKey(PRIVATE_KEY_PATH_PROP_KEY)) {
+      File privateKeyFile = new File(settings.getString(PRIVATE_KEY_PATH_PROP_KEY));
+      if (!privateKeyFile.exists() || !privateKeyFile.isFile() || !privateKeyFile.canRead()) {
+        throw MessageException.of("Unable to read private key from '" + privateKeyFile + "'");
+      }
+      return privateKeyFile;
+    }
+    return null;
   }
 
   @CheckForNull
