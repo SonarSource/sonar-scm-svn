@@ -4,15 +4,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.sonarsource.parent</groupId>
-    <artifactId>parent</artifactId>
-    <version>28</version>
-    <relativePath />
+    <groupId>org.sonarsource.scm.svn</groupId>
+    <artifactId>svn</artifactId>
+    <version>1.4-SNAPSHOT</version>
   </parent>
 
   <groupId>org.sonarsource.scm.svn</groupId>
   <artifactId>it-scmsvn</artifactId>
-  <version>1.0-SNAPSHOT</version>
   <name>SVN :: Integration Tests</name>
 
   <inceptionYear>2014</inceptionYear>
@@ -43,5 +41,49 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>qa</id>
+      <activation>
+        <property>
+          <name>env.SONARSOURCE_QA</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>2.10</version>
+            <executions>
+              <execution>
+                <id>copy-plugin</id>
+                <phase>generate-test-resources</phase>
+                <goals>
+                  <goal>copy</goal>
+                </goals>
+                <configuration>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>${project.groupId}</groupId>
+                      <artifactId>sonar-scm-svn-plugin</artifactId>
+                      <version>${project.version}</version>
+                      <type>sonar-plugin</type>
+                      <overWrite>true</overWrite>
+                    </artifactItem>
+                  </artifactItems>
+                  <outputDirectory>../sonar-scm-svn-plugin/target</outputDirectory>
+                  <overWriteReleases>true</overWriteReleases>
+                  <overWriteSnapshots>true</overWriteSnapshots>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>

@@ -8,10 +8,10 @@
     <relativePath />
   </parent>
   <groupId>org.sonarsource.scm.svn</groupId>
-  <artifactId>sonar-scm-svn-plugin</artifactId>
+  <artifactId>svn</artifactId>
   <version>1.4-SNAPSHOT</version>
   <name>SonarQube :: Plugins :: SCM :: SVN</name>
-  <packaging>sonar-plugin</packaging>
+  <packaging>pom</packaging>
   <description>SVN SCM Provider.</description>
   <url>http://redirect.sonarsource.com/plugins/scmsvn.html</url>
   <inceptionYear>2014</inceptionYear>
@@ -37,6 +37,11 @@
     </developer>
   </developers>
 
+  <modules>
+    <module>sonar-scm-svn-plugin</module>
+  </modules>
+
+
   <scm>
     <connection>scm:git:git@github.com:SonarSource/sonar-scm-svn.git</connection>
     <developerConnection>scm:git:git@github.com:SonarSource/sonar-scm-svn.git</developerConnection>
@@ -55,53 +60,9 @@
   </ciManagement>
 
   <properties>
-    <sonar.buildVersion>5.1</sonar.buildVersion>
-    <sonar.pluginName>SVN</sonar.pluginName>
-    <sonar.pluginClass>org.sonar.plugins.scm.svn.SvnPlugin</sonar.pluginClass>
-
     <!-- used for deployment to SonarSource Artifactory -->
     <gitRepositoryName>sonar-scm-svn</gitRepositoryName>
   </properties>
-
-  <dependencies>
-    <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>jsr305</artifactId>
-      <version>2.0.3</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.sonar</groupId>
-      <artifactId>sonar-plugin-api</artifactId>
-      <version>${sonar.buildVersion}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.tmatesoft.svnkit</groupId>
-      <artifactId>svnkit</artifactId>
-      <version>1.8.11</version>
-    </dependency>
-
-    <!-- unit tests -->
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
-      <version>2.1.0</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <version>1.9.5</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
 
   <profiles>
     <profile>

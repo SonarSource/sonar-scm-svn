@@ -10,8 +10,6 @@ script:
 
 env:
   - TARGET=CI
-  - TARGET=IT SQ_VERSION=5.1
-  - TARGET=IT SQ_VERSION=DEV
 
 matrix:
   fast_finish: true

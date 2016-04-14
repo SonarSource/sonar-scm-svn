@@ -12,16 +12,16 @@ configureTravis
 case "$TARGET" in
 
 CI)
-  regular_mvn_build_deploy_analyze
-  ;;
-
-IT)
-  start_xvfb
-
-  mvn verify -Dsource.skip=true -Denforcer.skip=true -Danimal.sniffer.skip=true -Dmaven.test.skip=true -B -e -V
-
-  cd its
-  mvn -Dsonar.runtimeVersion="$SQ_VERSION" -Dmaven.test.redirectTestOutputToFile=false verify -B -e -V
+  #regular_mvn_build_deploy_analyze
+  SONAR_PROJECT_VERSION=`maven_expression "project.version"`
+ 
+  # Do not deploy a SNAPSHOT version but the release version related to this build
+  set_maven_build_version $TRAVIS_BUILD_NUMBER
+ 
+  # the profile "deploy-sonarsource" is defined in parent pom v28+
+  mvn org.jacoco:jacoco-maven-plugin:prepare-agent deploy \
+    -Pdeploy-sonarsource \
+    -B -e -V
   ;;
 
 *)
