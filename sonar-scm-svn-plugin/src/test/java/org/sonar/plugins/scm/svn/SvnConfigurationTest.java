@@ -61,7 +61,7 @@ public class SvnConfigurationTest {
       config.privateKey();
       fail("Expected exception");
     } catch (Exception e) {
-      assertThat(e).hasMessage("Unable to read private key from '/not/exists'");
+      assertThat(e).hasMessageContaining("Unable to read private key from ");
     }
 
   }

@@ -72,28 +72,12 @@ public class SvnBlameCommand extends BlameCommand {
   private static void blame(SVNClientManager clientManager, InputFile inputFile, BlameOutput output) {
     String filename = inputFile.relativePath();
 
-    LOG.debug("Annotate file {}", filename);
+    LOG.debug("Process file {}", filename);
 
     AnnotationHandler handler = new AnnotationHandler();
     try {
-      SVNStatusClient statusClient = clientManager.getStatusClient();
-      try {
-        SVNStatus status = statusClient.doStatus(inputFile.file(), false);
-        if (status == null) {
-          LOG.debug("File {} returns no svn state. Skipping it.", inputFile);
-          return;
-        }
-        if (status.getContentsStatus() != SVNStatusType.STATUS_NORMAL) {
-          LOG.debug("File {} is not versionned or contains local modifications. Skipping it.", inputFile);
-          return;
-        }
-      } catch (SVNException e) {
-        if (SVNErrorCode.WC_PATH_NOT_FOUND.equals(e.getErrorMessage().getErrorCode())
-          || SVNErrorCode.WC_NOT_WORKING_COPY.equals(e.getErrorMessage().getErrorCode())) {
-          LOG.debug("File {} is not versionned. Skipping it.", inputFile);
-          return;
-        }
-        throw e;
+      if (!checkStatus(clientManager, inputFile)) {
+        return;
       }
       SVNLogClient logClient = clientManager.getLogClient();
       logClient.setDiffOptions(new SVNDiffOptions(true, true, true));
@@ -108,6 +92,29 @@ public class SvnBlameCommand extends BlameCommand {
       lines.add(lines.get(lines.size() - 1));
     }
     output.blameResult(inputFile, lines);
+  }
+
+  private static boolean checkStatus(SVNClientManager clientManager, InputFile inputFile) throws SVNException {
+    SVNStatusClient statusClient = clientManager.getStatusClient();
+    try {
+      SVNStatus status = statusClient.doStatus(inputFile.file(), false);
+      if (status == null) {
+        LOG.debug("File {} returns no svn state. Skipping it.", inputFile);
+        return false;
+      }
+      if (status.getContentsStatus() != SVNStatusType.STATUS_NORMAL) {
+        LOG.debug("File {} is not versionned or contains local modifications. Skipping it.", inputFile);
+        return false;
+      }
+    } catch (SVNException e) {
+      if (SVNErrorCode.WC_PATH_NOT_FOUND.equals(e.getErrorMessage().getErrorCode())
+        || SVNErrorCode.WC_NOT_WORKING_COPY.equals(e.getErrorMessage().getErrorCode())) {
+        LOG.debug("File {} is not versionned. Skipping it.", inputFile);
+        return false;
+      }
+      throw e;
+    }
+    return true;
   }
 
   public SVNClientManager getClientManager() {
