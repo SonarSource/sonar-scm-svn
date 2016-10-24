@@ -62,6 +62,8 @@
   <properties>
     <!-- used for deployment to SonarSource Artifactory -->
     <gitRepositoryName>sonar-scm-svn</gitRepositoryName>
+    <!-- Release: enable publication to Bintray -->
+    <artifactsToPublish>${project.groupId}:sonar-scm-svn-plugin:jar</artifactsToPublish>
   </properties>
 
   <profiles>
