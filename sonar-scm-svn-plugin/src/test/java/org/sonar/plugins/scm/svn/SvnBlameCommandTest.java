@@ -89,7 +89,7 @@ public class SvnBlameCommandTest {
 
   @Parameters(name = "SVN server version {0}, WC version {1}")
   public static Iterable<Object[]> data() {
-    return Arrays.asList(new Object[][] {{"1.6", 10}, {"1.8", 31}});
+    return Arrays.asList(new Object[][] {{"1.6", 10}, {"1.7", 29}, {"1.8", 31}, {"1.9", 31}});
   }
 
   public SvnBlameCommandTest(String serverVersion, int wcVersion) {
