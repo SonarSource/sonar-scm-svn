@@ -70,6 +70,10 @@ import static org.mockito.Mockito.when;
 @RunWith(Parameterized.class)
 public class SvnBlameCommandTest {
 
+  /*
+   * Note about SONARSCSVN-11: The case of a project baseDir is in a subFolder of working copy is part of method tests by default
+   */
+
   private static final String DUMMY_JAVA = "src/main/java/org/dummy/Dummy.java";
 
   @Rule

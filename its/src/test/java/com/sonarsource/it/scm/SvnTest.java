@@ -26,9 +26,7 @@ import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.MavenBuild;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.util.ZipUtils;
-import com.sonar.orchestrator.version.Version;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -37,13 +35,13 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-import org.apache.commons.lang3.time.DateUtils;
+import org.apache.commons.lang.time.DateUtils;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -93,15 +91,21 @@ public class SvnTest {
 
   private String serverVersion;
   private int wcVersion;
+  private String wkSubPath;
+  private String baseDirSubPath;
 
-  @Parameters(name = "SVN server version {0}, WC version {1}")
+  @Parameters(name = "SVN server version {0}, WC version {1}, WC subPath \"{2}\", baseDir subPath \"{3}\"")
   public static Iterable<Object[]> data() {
-    return Arrays.asList(new Object[][] {{"1.6", 10}, {"1.8", 31}});
+    return Arrays.asList(new Object[][] {{"1.6", 10, "dummy-svn", ""}, {"1.6", 10, "", "dummy-svn"}, {"1.8", 31, "dummy-svn", ""}, {"1.8", 31, "", "dummy-svn"}});
   }
 
-  public SvnTest(String serverVersion, int wcVersion) {
+  public SvnTest(String serverVersion, int wcVersion, String wkSubPath, String baseDirSubPath) {
     this.serverVersion = serverVersion;
     this.wcVersion = wcVersion;
+
+    // SONARSCSVN-11: Manage the case of a project baseDir is in a subFolder of working copy
+    this.wkSubPath = wkSubPath;
+    this.baseDirSubPath = baseDirSubPath;
   }
 
   @Before
@@ -113,10 +117,9 @@ public class SvnTest {
   public void sample_svn_project() throws Exception {
     File repo = unzip("repo-svn.zip");
 
-    String scmUrl = "file:///" + unixPath(new File(repo, "repo-svn/dummy-svn"));
-    File baseDir = checkout(scmUrl);
+    String scmUrl = "file:///" + unixPath(new File(repo, "repo-svn/" + wkSubPath));
 
-    runSonar(baseDir);
+    runSonar(new File(checkout(scmUrl), baseDirSubPath));
 
     assertThat(getScmData("dummy:dummy:src/main/java/org/dummy/Dummy.java"))
       .contains(
@@ -131,8 +134,8 @@ public class SvnTest {
   public void dont_fail_on_uncommited_files() throws Exception {
     File repo = unzip("repo-svn.zip");
 
-    String scmUrl = "file:///" + unixPath(new File(repo, "repo-svn/dummy-svn"));
-    File baseDir = checkout(scmUrl);
+    String scmUrl = "file:///" + unixPath(new File(repo, "repo-svn/" + wkSubPath));
+    File baseDir = new File(checkout(scmUrl), baseDirSubPath);
 
     // Edit file
     FileUtils.write(new File(baseDir, "src/main/java/org/dummy/Dummy.java"), "\n//bla\n//bla", Charsets.UTF_8, true);
@@ -154,10 +157,19 @@ public class SvnTest {
   public void sample_svn_project_with_merge() throws Exception {
     File repo = unzip("repo-svn-with-merge.zip");
 
-    String scmUrl = "file:///" + unixPath(new File(repo, "repo-svn/dummy-svn/trunk"));
-    File baseDir = checkout(scmUrl);
+    // The "repo-svn-with-merge" repository has a "trunk" subPath => suffix should be added
+    String tmpWkSubPath = wkSubPath;
+    if (StringUtils.isNotBlank(tmpWkSubPath)) {
+      tmpWkSubPath = tmpWkSubPath + "/trunk";
+    }
+    String tmpBaseDirSubPath = baseDirSubPath;
+    if (StringUtils.isNotBlank(tmpBaseDirSubPath)) {
+      tmpBaseDirSubPath = tmpBaseDirSubPath + "/trunk";
+    }
 
-    runSonar(baseDir);
+    String scmUrl = "file:///" + unixPath(new File(repo, "repo-svn/" + tmpWkSubPath));
+
+    runSonar(new File(checkout(scmUrl), tmpBaseDirSubPath));
 
     assertThat(getScmData("dummy:dummy:src/main/java/org/dummy/Dummy.java"))
       .contains(
