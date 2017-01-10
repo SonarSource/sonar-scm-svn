@@ -53,6 +53,12 @@ public class SvnScmProviderTest {
     File svnBaseDir = temp.newFolder();
     new File(svnBaseDir, ".svn").mkdir();
     assertThat(new SvnScmProvider(null).supports(svnBaseDir)).isTrue();
+
+    File svnBaseDirSubFolder = temp.newFolder();
+    new File(svnBaseDirSubFolder, ".svn").mkdir();
+    File projectBaseDir = new File(svnBaseDirSubFolder, "folder");
+    projectBaseDir.mkdir();
+    assertThat(new SvnScmProvider(null).supports(projectBaseDir)).isTrue();
   }
 
 }

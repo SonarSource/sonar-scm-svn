@@ -19,6 +19,7 @@
  */
 package org.sonar.plugins.scm.svn;
 
+
 import org.sonar.api.batch.scm.BlameCommand;
 import org.sonar.api.batch.scm.ScmProvider;
 
@@ -39,7 +40,14 @@ public class SvnScmProvider extends ScmProvider {
 
   @Override
   public boolean supports(File baseDir) {
-    return new File(baseDir, ".svn").exists();
+    File folder = baseDir;
+    while (folder != null) {
+      if (new File(folder, ".svn").exists()) {
+        return true;
+      }
+      folder = folder.getParentFile();
+    }
+    return false;
   }
 
   @Override
