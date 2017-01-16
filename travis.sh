@@ -9,15 +9,4 @@ function configureTravis {
 }
 configureTravis
 
-case "$TARGET" in
-
-CI)
-  regular_mvn_build_deploy_analyze
-  ;;
-
-*)
-  echo "Unexpected TARGET value: $TARGET"
-  exit 1
-  ;;
-
-esac
+regular_mvn_build_deploy_analyze
