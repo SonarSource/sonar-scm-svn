@@ -9,7 +9,7 @@
   </parent>
   <groupId>org.sonarsource.scm.svn</groupId>
   <artifactId>svn</artifactId>
-  <version>1.4-SNAPSHOT</version>
+  <version>1.5</version>
   <name>SonarQube :: Plugins :: SCM :: SVN</name>
   <packaging>pom</packaging>
   <description>SVN SCM Provider.</description>
