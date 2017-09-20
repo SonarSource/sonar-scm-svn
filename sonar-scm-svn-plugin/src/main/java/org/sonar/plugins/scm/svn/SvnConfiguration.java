@@ -19,8 +19,8 @@
  */
 package org.sonar.plugins.scm.svn;
 
-import com.google.common.collect.ImmutableList;
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import org.sonar.api.BatchComponent;
@@ -47,7 +47,7 @@ public class SvnConfiguration implements BatchComponent {
   }
 
   public static List<PropertyDefinition> getProperties() {
-    return ImmutableList.of(
+    return Arrays.asList(
       PropertyDefinition.builder(USER_PROP_KEY)
         .name("Username")
         .description("Username to be used for SVN server or SVN+SSH authentication")

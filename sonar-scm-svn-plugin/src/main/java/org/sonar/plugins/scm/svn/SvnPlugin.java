@@ -19,7 +19,7 @@
  */
 package org.sonar.plugins.scm.svn;
 
-import com.google.common.collect.ImmutableList;
+import java.util.Arrays;
 import org.sonar.api.SonarPlugin;
 
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ public final class SvnPlugin extends SonarPlugin {
   @Override
   public List getExtensions() {
     List result = new ArrayList();
-    result.addAll(ImmutableList.of(
+    result.addAll(Arrays.asList(
       SvnScmProvider.class,
       SvnBlameCommand.class,
       SvnConfiguration.class));
