@@ -5,14 +5,13 @@
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
     <version>40</version>
-    <relativePath />
   </parent>
   <groupId>org.sonarsource.scm.svn</groupId>
   <artifactId>svn</artifactId>
-  <version>1.5</version>
-  <name>SonarQube :: Plugins :: SCM :: SVN</name>
+  <version>1.6-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <description>SVN SCM Provider.</description>
+  <name>SonarQube :: Plugins :: SCM :: SVN</name>
+  <description>Subversion SCM Provider for SonarQube</description>
   <url>http://redirect.sonarsource.com/plugins/scmsvn.html</url>
   <inceptionYear>2014</inceptionYear>
 
