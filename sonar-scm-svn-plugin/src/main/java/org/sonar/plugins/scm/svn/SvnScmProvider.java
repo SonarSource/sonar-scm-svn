@@ -19,18 +19,33 @@
  */
 package org.sonar.plugins.scm.svn;
 
-
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.annotation.Nullable;
 import org.sonar.api.batch.scm.BlameCommand;
-import org.sonar.api.batch.scm.ScmProvider;
+import org.sonar.api.batch.scm.ScmBranchProvider;
 
 import java.io.File;
+import org.sonar.api.utils.log.Logger;
+import org.sonar.api.utils.log.Loggers;
+import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.wc.SVNInfo;
+import org.tmatesoft.svn.core.wc.SVNLogClient;
+import org.tmatesoft.svn.core.wc.SVNWCClient;
 
-public class SvnScmProvider extends ScmProvider {
+public class SvnScmProvider extends ScmBranchProvider {
+
+  private static final Logger LOG = Loggers.get(SvnScmProvider.class);
 
   private final SvnBlameCommand blameCommand;
+  private final SvnClientManagerProvider svnClientManagerProvider;
 
-  public SvnScmProvider(SvnBlameCommand blameCommand) {
+  public SvnScmProvider(SvnBlameCommand blameCommand, SvnClientManagerProvider svnClientManagerProvider) {
     this.blameCommand = blameCommand;
+    this.svnClientManagerProvider = svnClientManagerProvider;
   }
 
   @Override
@@ -53,5 +68,30 @@ public class SvnScmProvider extends ScmProvider {
   @Override
   public BlameCommand blameCommand() {
     return blameCommand;
+  }
+
+  @Nullable
+  @Override
+  public Collection<Path> branchChangedFiles(String targetBranchName, Path rootBaseDir) {
+    try {
+      SVNWCClient wcClient = svnClientManagerProvider.get().getWCClient();
+      SVNInfo svnInfo = wcClient.doInfo(rootBaseDir.toFile(), null);
+      String base = "/" + Paths.get(svnInfo.getRepositoryRootURL().getPath()).relativize(Paths.get(svnInfo.getURL().getPath()));
+
+      SVNLogClient svnLogClient = svnClientManagerProvider.get().getLogClient();
+      List<Path> paths = new ArrayList<>();
+      svnLogClient.doLog(new File[] {rootBaseDir.toFile()}, null, null, null, true, true, 0, svnLogEntry -> {
+        svnLogEntry.getChangedPaths().values().forEach(entry -> {
+          if (entry.getCopyPath() == null) {
+            paths.add(rootBaseDir.resolve(Paths.get(base).relativize(Paths.get(entry.getPath()))));
+          }
+        });
+      });
+      return paths;
+    } catch (SVNException e) {
+      LOG.warn(e.getMessage(), e);
+    }
+
+    return null;
   }
 }

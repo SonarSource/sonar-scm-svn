@@ -28,8 +28,6 @@ import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.tmatesoft.svn.core.SVNErrorCode;
 import org.tmatesoft.svn.core.SVNException;
-import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager;
-import org.tmatesoft.svn.core.wc.ISVNOptions;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNDiffOptions;
 import org.tmatesoft.svn.core.wc.SVNLogClient;
@@ -37,31 +35,29 @@ import org.tmatesoft.svn.core.wc.SVNRevision;
 import org.tmatesoft.svn.core.wc.SVNStatus;
 import org.tmatesoft.svn.core.wc.SVNStatusClient;
 import org.tmatesoft.svn.core.wc.SVNStatusType;
-import org.tmatesoft.svn.core.wc.SVNWCUtil;
 
 public class SvnBlameCommand extends BlameCommand {
 
   private static final Logger LOG = Loggers.get(SvnBlameCommand.class);
-  private final SvnConfiguration configuration;
 
-  public SvnBlameCommand(SvnConfiguration configuration) {
-    this.configuration = configuration;
+  private final SVNClientManager svnClientManager;
+
+  public SvnBlameCommand(SvnClientManagerProvider svnClientManagerProvider) {
+    this.svnClientManager = svnClientManagerProvider.get();
   }
 
   @Override
   public void blame(final BlameInput input, final BlameOutput output) {
     FileSystem fs = input.fileSystem();
     LOG.debug("Working directory: " + fs.baseDir().getAbsolutePath());
-    SVNClientManager clientManager = null;
     try {
-      clientManager = getClientManager();
       for (InputFile inputFile : input.filesToBlame()) {
-        blame(clientManager, inputFile, output);
+        blame(svnClientManager, inputFile, output);
       }
     } finally {
-      if (clientManager != null) {
+      if (svnClientManager != null) {
         try {
-          clientManager.dispose();
+          svnClientManager.dispose();
         } catch (Exception e) {
           LOG.warn("Unable to dispose SVN ClientManager", e);
         }
@@ -115,21 +111,5 @@ public class SvnBlameCommand extends BlameCommand {
       throw e;
     }
     return true;
-  }
-
-  public SVNClientManager getClientManager() {
-    ISVNOptions options = SVNWCUtil.createDefaultOptions(true);
-    String password = configuration.password();
-    final char[] passwordValue = password != null ? password.toCharArray() : null;
-    String passPhrase = configuration.passPhrase();
-    final char[] passPhraseValue = passPhrase != null ? passPhrase.toCharArray() : null;
-    ISVNAuthenticationManager authManager = SVNWCUtil.createDefaultAuthenticationManager(
-      null,
-      configuration.username(),
-      passwordValue,
-      configuration.privateKey(),
-      passPhraseValue,
-      false);
-    return SVNClientManager.newInstance(options, authManager);
   }
 }

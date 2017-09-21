@@ -57,6 +57,7 @@ import org.tmatesoft.svn.core.wc.SVNRevision;
 import org.tmatesoft.svn.core.wc.SVNUpdateClient;
 import org.tmatesoft.svn.core.wc.SVNWCUtil;
 import org.tmatesoft.svn.core.wc2.SvnCheckout;
+import org.tmatesoft.svn.core.wc2.SvnOperationFactory;
 import org.tmatesoft.svn.core.wc2.SvnTarget;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -119,7 +120,7 @@ public class SvnBlameCommandTest {
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    newSvnBlameCommand().blame(input, blameResult);
     ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
     verify(blameResult).blameResult(eq(inputFile), captor.capture());
     List<BlameLine> result = captor.getValue();
@@ -197,7 +198,7 @@ public class SvnBlameCommandTest {
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    newSvnBlameCommand().blame(input, blameResult);
     ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
     verify(blameResult).blameResult(eq(inputFile), captor.capture());
     List<BlameLine> result = captor.getValue();
@@ -252,7 +253,7 @@ public class SvnBlameCommandTest {
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    newSvnBlameCommand().blame(input, blameResult);
     verifyZeroInteractions(blameResult);
   }
 
@@ -273,7 +274,7 @@ public class SvnBlameCommandTest {
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    newSvnBlameCommand().blame(input, blameResult);
     verifyZeroInteractions(blameResult);
   }
 
@@ -296,7 +297,7 @@ public class SvnBlameCommandTest {
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    newSvnBlameCommand().blame(input, blameResult);
     verifyZeroInteractions(blameResult);
   }
 
@@ -321,7 +322,7 @@ public class SvnBlameCommandTest {
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    newSvnBlameCommand().blame(input, blameResult);
     verifyZeroInteractions(blameResult);
   }
 
@@ -356,4 +357,13 @@ public class SvnBlameCommandTest {
     return file.getAbsolutePath().replace('\\', '/');
   }
 
+  private SvnBlameCommand newSvnBlameCommand() {
+    SvnClientManagerProvider provider = new SvnClientManagerProvider(mock(SvnConfiguration.class)) {
+      @Override
+      public SVNClientManager get() {
+        return SVNClientManager.newInstance(new SvnOperationFactory());
+      }
+    };
+    return new SvnBlameCommand(provider);
+  }
 }
