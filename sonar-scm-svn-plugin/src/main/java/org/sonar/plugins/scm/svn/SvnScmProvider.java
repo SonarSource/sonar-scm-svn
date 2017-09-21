@@ -19,16 +19,14 @@
  */
 package org.sonar.plugins.scm.svn;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import javax.annotation.Nullable;
 import org.sonar.api.batch.scm.BlameCommand;
 import org.sonar.api.batch.scm.ScmBranchProvider;
-
-import java.io.File;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.tmatesoft.svn.core.SVNException;
@@ -75,7 +73,7 @@ public class SvnScmProvider extends ScmBranchProvider {
 
   @Nullable
   @Override
-  public Collection<Path> branchChangedFiles(String targetBranchName, Path rootBaseDir) {
+  public Set<Path> branchChangedFiles(String targetBranchName, Path rootBaseDir) {
     SVNClientManager clientManager = null;
     try {
       clientManager = newSvnClientManager(configuration);
@@ -84,7 +82,7 @@ public class SvnScmProvider extends ScmBranchProvider {
       String base = "/" + Paths.get(svnInfo.getRepositoryRootURL().getPath()).relativize(Paths.get(svnInfo.getURL().getPath()));
 
       SVNLogClient svnLogClient = clientManager.getLogClient();
-      List<Path> paths = new ArrayList<>();
+      Set<Path> paths = new HashSet<>();
       svnLogClient.doLog(new File[] {rootBaseDir.toFile()}, null, null, null, true, true, 0, svnLogEntry -> {
         svnLogEntry.getChangedPaths().values().forEach(entry -> {
           if (entry.getCopyPath() == null) {

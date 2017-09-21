@@ -14,7 +14,7 @@
 
   
   <properties>
-    <sonar.buildVersion>6.6-SNAPSHOT</sonar.buildVersion>
+    <sonar.buildVersion>6.6.0.30613</sonar.buildVersion>
     <sonar.pluginName>SVN</sonar.pluginName>
     <sonar.pluginClass>org.sonar.plugins.scm.svn.SvnPlugin</sonar.pluginClass>
   </properties>
