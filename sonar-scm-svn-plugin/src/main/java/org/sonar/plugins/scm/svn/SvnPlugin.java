@@ -36,7 +36,6 @@ public final class SvnPlugin extends SonarPlugin {
     result.addAll(Arrays.asList(
       SvnScmProvider.class,
       SvnBlameCommand.class,
-      SvnClientManagerProvider.class,
       SvnConfiguration.class));
     result.addAll(SvnConfiguration.getProperties());
     return result;

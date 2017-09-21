@@ -51,15 +51,16 @@ public class SvnBlameCommand extends BlameCommand {
   public void blame(final BlameInput input, final BlameOutput output) {
     FileSystem fs = input.fileSystem();
     LOG.debug("Working directory: " + fs.baseDir().getAbsolutePath());
-    SVNClientManager svnClientManager = newSvnClientManager(configuration);
+    SVNClientManager clientManager = null;
     try {
+      clientManager = newSvnClientManager(configuration);
       for (InputFile inputFile : input.filesToBlame()) {
-        blame(svnClientManager, inputFile, output);
+        blame(clientManager, inputFile, output);
       }
     } finally {
-      if (svnClientManager != null) {
+      if (clientManager != null) {
         try {
-          svnClientManager.dispose();
+          clientManager.dispose();
         } catch (Exception e) {
           LOG.warn("Unable to dispose SVN ClientManager", e);
         }

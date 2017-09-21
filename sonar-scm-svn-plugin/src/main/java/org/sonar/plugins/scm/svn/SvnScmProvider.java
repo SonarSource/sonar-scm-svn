@@ -76,13 +76,14 @@ public class SvnScmProvider extends ScmBranchProvider {
   @Nullable
   @Override
   public Collection<Path> branchChangedFiles(String targetBranchName, Path rootBaseDir) {
+    SVNClientManager clientManager = null;
     try {
-      SVNClientManager svnClientManager = newSvnClientManager(configuration);
-      SVNWCClient wcClient = svnClientManager.getWCClient();
+      clientManager = newSvnClientManager(configuration);
+      SVNWCClient wcClient = clientManager.getWCClient();
       SVNInfo svnInfo = wcClient.doInfo(rootBaseDir.toFile(), null);
       String base = "/" + Paths.get(svnInfo.getRepositoryRootURL().getPath()).relativize(Paths.get(svnInfo.getURL().getPath()));
 
-      SVNLogClient svnLogClient = svnClientManager.getLogClient();
+      SVNLogClient svnLogClient = clientManager.getLogClient();
       List<Path> paths = new ArrayList<>();
       svnLogClient.doLog(new File[] {rootBaseDir.toFile()}, null, null, null, true, true, 0, svnLogEntry -> {
         svnLogEntry.getChangedPaths().values().forEach(entry -> {
@@ -94,6 +95,14 @@ public class SvnScmProvider extends ScmBranchProvider {
       return paths;
     } catch (SVNException e) {
       LOG.warn(e.getMessage(), e);
+    } finally {
+      if (clientManager != null) {
+        try {
+          clientManager.dispose();
+        } catch (Exception e) {
+          LOG.warn("Unable to dispose SVN ClientManager", e);
+        }
+      }
     }
 
     return null;
