@@ -30,8 +30,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.sonar.api.batch.scm.ScmBranchProvider;
 import org.tmatesoft.svn.core.SVNException;
-import org.tmatesoft.svn.core.wc.SVNClientManager;
-import org.tmatesoft.svn.core.wc2.SvnOperationFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -53,8 +51,8 @@ public class SvnScmProviderTest {
 
   @Test
   public void sanityCheck() {
-    SvnBlameCommand blameCommand = new SvnBlameCommand(mock(SvnClientManagerProvider.class));
-    SvnScmProvider svnScmProvider = new SvnScmProvider(blameCommand, null);
+    SvnBlameCommand blameCommand = new SvnBlameCommand(mock(SvnConfiguration.class));
+    SvnScmProvider svnScmProvider = new SvnScmProvider(mock(SvnConfiguration.class), blameCommand);
     assertThat(svnScmProvider.key()).isEqualTo("svn");
     assertThat(svnScmProvider.blameCommand()).isEqualTo(blameCommand);
   }
@@ -120,12 +118,6 @@ public class SvnScmProviderTest {
   }
 
   private ScmBranchProvider newScmBranchProvider() {
-    SvnClientManagerProvider provider = new SvnClientManagerProvider(mock(SvnConfiguration.class)) {
-      @Override
-      public SVNClientManager get() {
-        return SVNClientManager.newInstance(new SvnOperationFactory());
-      }
-    };
-    return new SvnScmProvider(new SvnBlameCommand(provider), provider);
+    return new SvnScmProvider(mock(SvnConfiguration.class), new SvnBlameCommand(mock(SvnConfiguration.class)));
   }
 }

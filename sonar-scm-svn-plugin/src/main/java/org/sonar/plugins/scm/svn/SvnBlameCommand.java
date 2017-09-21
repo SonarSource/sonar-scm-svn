@@ -36,20 +36,22 @@ import org.tmatesoft.svn.core.wc.SVNStatus;
 import org.tmatesoft.svn.core.wc.SVNStatusClient;
 import org.tmatesoft.svn.core.wc.SVNStatusType;
 
+import static org.sonar.plugins.scm.svn.SvnPlugin.newSvnClientManager;
+
 public class SvnBlameCommand extends BlameCommand {
 
   private static final Logger LOG = Loggers.get(SvnBlameCommand.class);
+  private final SvnConfiguration configuration;
 
-  private final SVNClientManager svnClientManager;
-
-  public SvnBlameCommand(SvnClientManagerProvider svnClientManagerProvider) {
-    this.svnClientManager = svnClientManagerProvider.get();
+  public SvnBlameCommand(SvnConfiguration configuration) {
+    this.configuration = configuration;
   }
 
   @Override
   public void blame(final BlameInput input, final BlameOutput output) {
     FileSystem fs = input.fileSystem();
     LOG.debug("Working directory: " + fs.baseDir().getAbsolutePath());
+    SVNClientManager svnClientManager = newSvnClientManager(configuration);
     try {
       for (InputFile inputFile : input.filesToBlame()) {
         blame(svnClientManager, inputFile, output);

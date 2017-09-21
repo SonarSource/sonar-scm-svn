@@ -19,11 +19,14 @@
  */
 package org.sonar.plugins.scm.svn;
 
-import java.util.Arrays;
-import org.sonar.api.SonarPlugin;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import org.sonar.api.SonarPlugin;
+import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager;
+import org.tmatesoft.svn.core.wc.ISVNOptions;
+import org.tmatesoft.svn.core.wc.SVNClientManager;
+import org.tmatesoft.svn.core.wc.SVNWCUtil;
 
 public final class SvnPlugin extends SonarPlugin {
 
@@ -37,5 +40,21 @@ public final class SvnPlugin extends SonarPlugin {
       SvnConfiguration.class));
     result.addAll(SvnConfiguration.getProperties());
     return result;
+  }
+
+  public static SVNClientManager newSvnClientManager(SvnConfiguration configuration) {
+    ISVNOptions options = SVNWCUtil.createDefaultOptions(true);
+    String password = configuration.password();
+    final char[] passwordValue = password != null ? password.toCharArray() : null;
+    String passPhrase = configuration.passPhrase();
+    final char[] passPhraseValue = passPhrase != null ? passPhrase.toCharArray() : null;
+    ISVNAuthenticationManager authManager = SVNWCUtil.createDefaultAuthenticationManager(
+      null,
+      configuration.username(),
+      passwordValue,
+      configuration.privateKey(),
+      passPhraseValue,
+      false);
+    return SVNClientManager.newInstance(options, authManager);
   }
 }

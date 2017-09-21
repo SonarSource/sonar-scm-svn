@@ -32,20 +32,23 @@ import java.io.File;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNInfo;
 import org.tmatesoft.svn.core.wc.SVNLogClient;
 import org.tmatesoft.svn.core.wc.SVNWCClient;
+
+import static org.sonar.plugins.scm.svn.SvnPlugin.newSvnClientManager;
 
 public class SvnScmProvider extends ScmBranchProvider {
 
   private static final Logger LOG = Loggers.get(SvnScmProvider.class);
 
+  private final SvnConfiguration configuration;
   private final SvnBlameCommand blameCommand;
-  private final SvnClientManagerProvider svnClientManagerProvider;
 
-  public SvnScmProvider(SvnBlameCommand blameCommand, SvnClientManagerProvider svnClientManagerProvider) {
+  public SvnScmProvider(SvnConfiguration configuration, SvnBlameCommand blameCommand) {
+    this.configuration = configuration;
     this.blameCommand = blameCommand;
-    this.svnClientManagerProvider = svnClientManagerProvider;
   }
 
   @Override
@@ -74,11 +77,12 @@ public class SvnScmProvider extends ScmBranchProvider {
   @Override
   public Collection<Path> branchChangedFiles(String targetBranchName, Path rootBaseDir) {
     try {
-      SVNWCClient wcClient = svnClientManagerProvider.get().getWCClient();
+      SVNClientManager svnClientManager = newSvnClientManager(configuration);
+      SVNWCClient wcClient = svnClientManager.getWCClient();
       SVNInfo svnInfo = wcClient.doInfo(rootBaseDir.toFile(), null);
       String base = "/" + Paths.get(svnInfo.getRepositoryRootURL().getPath()).relativize(Paths.get(svnInfo.getURL().getPath()));
 
-      SVNLogClient svnLogClient = svnClientManagerProvider.get().getLogClient();
+      SVNLogClient svnLogClient = svnClientManager.getLogClient();
       List<Path> paths = new ArrayList<>();
       svnLogClient.doLog(new File[] {rootBaseDir.toFile()}, null, null, null, true, true, 0, svnLogEntry -> {
         svnLogEntry.getChangedPaths().values().forEach(entry -> {

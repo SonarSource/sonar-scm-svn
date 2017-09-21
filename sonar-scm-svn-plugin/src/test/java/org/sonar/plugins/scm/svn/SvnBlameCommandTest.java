@@ -57,7 +57,6 @@ import org.tmatesoft.svn.core.wc.SVNRevision;
 import org.tmatesoft.svn.core.wc.SVNUpdateClient;
 import org.tmatesoft.svn.core.wc.SVNWCUtil;
 import org.tmatesoft.svn.core.wc2.SvnCheckout;
-import org.tmatesoft.svn.core.wc2.SvnOperationFactory;
 import org.tmatesoft.svn.core.wc2.SvnTarget;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -358,12 +357,6 @@ public class SvnBlameCommandTest {
   }
 
   private SvnBlameCommand newSvnBlameCommand() {
-    SvnClientManagerProvider provider = new SvnClientManagerProvider(mock(SvnConfiguration.class)) {
-      @Override
-      public SVNClientManager get() {
-        return SVNClientManager.newInstance(new SvnOperationFactory());
-      }
-    };
-    return new SvnBlameCommand(provider);
+    return new SvnBlameCommand(mock(SvnConfiguration.class));
   }
 }
