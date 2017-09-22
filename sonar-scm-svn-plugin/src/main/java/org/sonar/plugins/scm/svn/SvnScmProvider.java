@@ -85,11 +85,14 @@ public class SvnScmProvider extends ScmBranchProvider {
       SVNLogClient svnLogClient = clientManager.getLogClient();
       Set<Path> paths = new HashSet<>();
       svnLogClient.doLog(new File[] {rootBaseDir.toFile()}, null, null, null, true, true, 0, svnLogEntry -> {
-        svnLogEntry.getChangedPaths().values().forEach(entry -> {
-          if (entry.getCopyPath() == null && (entry.getType() == SVNLogEntryPath.TYPE_ADDED || entry.getType() == SVNLogEntryPath.TYPE_MODIFIED)) {
+        for (SVNLogEntryPath entry : svnLogEntry.getChangedPaths().values()) {
+          if (entry.getCopyPath() != null) {
+            break;
+          }
+          if (entry.getType() == SVNLogEntryPath.TYPE_ADDED || entry.getType() == SVNLogEntryPath.TYPE_MODIFIED) {
             paths.add(rootBaseDir.resolve(Paths.get(base).relativize(Paths.get(entry.getPath()))));
           }
-        });
+        }
       });
       return paths;
     } catch (SVNException e) {
