@@ -42,14 +42,14 @@ public class SvnScmProviderTest {
   @Rule
   public ExpectedException thrown = ExpectedException.none();
 
-  private SvnTester tester;
+  private SvnTester svnTester;
 
   @Before
   public void before() throws IOException, SVNException {
-    tester = new SvnTester(temp.newFolder().toPath());
+    svnTester = new SvnTester(temp.newFolder().toPath());
 
     Path worktree = temp.newFolder().toPath();
-    tester.checkout(worktree, "trunk");
+    svnTester.checkout(worktree, "trunk");
     createAndCommitFile(worktree, "file-in-first-commit.xoo");
   }
 
@@ -82,23 +82,25 @@ public class SvnScmProviderTest {
   @Test
   public void branchChangedFiles_from_diverged() throws IOException, SVNException {
     Path trunk = temp.newFolder().toPath();
-    tester.checkout(trunk, "trunk");
+    svnTester.checkout(trunk, "trunk");
     createAndCommitFile(trunk, "file-m1.xoo");
     createAndCommitFile(trunk, "file-m2.xoo");
     createAndCommitFile(trunk, "file-m3.xoo");
-    tester.createBranch("b1");
+
+    // create branch from trunk
+    svnTester.createBranch("b1");
 
     // still on trunk
     appendToAndCommitFile(trunk, "file-m3.xoo");
     createAndCommitFile(trunk, "file-m4.xoo");
 
     Path b1 = temp.newFolder().toPath();
-    tester.checkout(b1, "branches/b1");
+    svnTester.checkout(b1, "branches/b1");
     createAndCommitFile(b1, "file-b1.xoo");
     appendToAndCommitFile(b1, "file-m1.xoo");
     deleteAndCommitFile(b1, "file-m2.xoo");
 
-    tester.update(b1);
+    svnTester.update(b1);
 
     assertThat(newScmBranchProvider().branchChangedFiles("trunk", b1))
       .containsExactlyInAnyOrder(
@@ -109,8 +111,8 @@ public class SvnScmProviderTest {
   @Test
   public void branchChangedFiles_should_return_empty_when_no_local_changes() throws IOException, SVNException {
     Path b1 = temp.newFolder().toPath();
-    tester.createBranch("b1");
-    tester.checkout(b1, "branches/b1");
+    svnTester.createBranch("b1");
+    svnTester.checkout(b1, "branches/b1");
 
     assertThat(newScmBranchProvider().branchChangedFiles("b1", b1)).isEmpty();
   }
@@ -126,19 +128,19 @@ public class SvnScmProviderTest {
   }
 
   private void createAndCommitFile(Path worktree, String filename) throws IOException, SVNException {
-    tester.createFile(worktree, filename);
-    tester.add(worktree, filename);
-    tester.commit(worktree);
+    svnTester.createFile(worktree, filename);
+    svnTester.add(worktree, filename);
+    svnTester.commit(worktree);
   }
 
   private void appendToAndCommitFile(Path worktree, String filename) throws IOException, SVNException {
-    tester.modifyFile(worktree, filename);
-    tester.commit(worktree);
+    svnTester.modifyFile(worktree, filename);
+    svnTester.commit(worktree);
   }
 
   private void deleteAndCommitFile(Path worktree, String filename) throws IOException, SVNException {
-    tester.deleteFile(worktree, filename);
-    tester.commit(worktree);
+    svnTester.deleteFile(worktree, filename);
+    svnTester.commit(worktree);
   }
 
   private ScmBranchProvider newScmBranchProvider() {

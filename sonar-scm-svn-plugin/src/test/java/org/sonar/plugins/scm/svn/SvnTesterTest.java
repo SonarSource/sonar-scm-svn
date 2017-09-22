@@ -21,7 +21,6 @@ package org.sonar.plugins.scm.svn;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -65,41 +64,5 @@ public class SvnTesterTest {
     tester.createBranch("b1");
     assertThat(tester.list()).containsExactlyInAnyOrder("trunk", "branches", "branches/b1");
     assertThat(tester.list("branches")).containsOnly("b1");
-  }
-
-  @Test
-  public void test_listFilesModifiedInBranch() throws IOException, SVNException {
-    Path trunk = temp.newFolder().toPath();
-    tester.checkout(trunk, "trunk");
-    tester.createFile(trunk, "file-0");
-    tester.add(trunk, "file-0");
-    tester.createFile(trunk, "file-1");
-    tester.add(trunk, "file-1");
-    tester.commit(trunk);
-
-    tester.createBranch("b1");
-
-    Path branch = temp.newFolder().toPath();
-    tester.checkout(branch, "branches/b1");
-    tester.createFile(branch, "file-b1");
-    tester.add(branch, "file-b1");
-    tester.modifyFile(branch, "file-1");
-    tester.commit(branch);
-
-    assertThat(tester.list("trunk")).containsOnly("file-0", "file-1");
-    assertThat(tester.list("branches/b1")).containsOnly("file-0", "file-1", "file-b1");
-
-    Path trunk2 = temp.newFolder().toPath();
-    tester.checkout(trunk2, "trunk");
-    tester.createFile(trunk2, "file-0-2");
-    tester.add(trunk2, "file-0-2");
-    tester.commit(trunk2);
-
-    assertThat(tester.list("trunk")).containsOnly("file-0", "file-1", "file-0-2");
-    assertThat(tester.list("branches/b1")).containsOnly("file-0", "file-1", "file-b1");
-
-    Path branch2 = temp.newFolder().toPath();
-    tester.checkout(branch2, "branches/b1");
-    assertThat(tester.branchChangedFiles(branch2)).containsOnly(Paths.get("file-1"), Paths.get("file-b1"));
   }
 }

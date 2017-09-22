@@ -23,12 +23,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNException;
@@ -37,22 +34,19 @@ import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNCopyClient;
 import org.tmatesoft.svn.core.wc.SVNCopySource;
-import org.tmatesoft.svn.core.wc.SVNInfo;
-import org.tmatesoft.svn.core.wc.SVNLogClient;
 import org.tmatesoft.svn.core.wc.SVNRevision;
 import org.tmatesoft.svn.core.wc.SVNUpdateClient;
-import org.tmatesoft.svn.core.wc.SVNWCClient;
 import org.tmatesoft.svn.core.wc2.SvnList;
 import org.tmatesoft.svn.core.wc2.SvnOperationFactory;
 import org.tmatesoft.svn.core.wc2.SvnRemoteMkDir;
 import org.tmatesoft.svn.core.wc2.SvnTarget;
 
-class SvnTester {
+public class SvnTester {
   private final SVNClientManager manager = SVNClientManager.newInstance(new SvnOperationFactory());
 
   private final SVNURL localRepository;
 
-  SvnTester(Path root) throws SVNException, IOException {
+  public SvnTester(Path root) throws SVNException, IOException {
     localRepository = SVNRepositoryFactory.createLocalRepository(root.toFile(), false, false);
     mkdir("trunk");
     mkdir("branches");
@@ -64,31 +58,31 @@ class SvnTester {
     remoteMkDir.run();
   }
 
-  void createBranch(String branchName) throws IOException, SVNException {
+  public void createBranch(String branchName) throws IOException, SVNException {
     SVNCopyClient copyClient = manager.getCopyClient();
     SVNCopySource source = new SVNCopySource(SVNRevision.HEAD, SVNRevision.HEAD, localRepository.appendPath("trunk", false));
     copyClient.doCopy(new SVNCopySource[] {source}, localRepository.appendPath("branches/" + branchName, false), false, false, true, "Create branch", null);
   }
 
-  void checkout(Path worktree, String path) throws SVNException {
+  public void checkout(Path worktree, String path) throws SVNException {
     SVNUpdateClient updateClient = manager.getUpdateClient();
     updateClient.doCheckout(localRepository.appendPath(path, false),
       worktree.toFile(), null, null, SVNDepth.INFINITY, false);
   }
 
-  void add(Path worktree, String filename) throws SVNException {
+  public void add(Path worktree, String filename) throws SVNException {
     manager.getWCClient().doAdd(worktree.resolve(filename).toFile(), false, false, false, null, false, false, false);
   }
 
-  void commit(Path worktree) throws SVNException {
+  public void commit(Path worktree) throws SVNException {
     manager.getCommitClient().doCommit(new File[] {worktree.toFile()}, false, "commit " + worktree, null, null, false, false, null);
   }
 
-  void update(Path worktree) throws SVNException {
+  public void update(Path worktree) throws SVNException {
     manager.getUpdateClient().doUpdate(new File[] {worktree.toFile()}, SVNRevision.HEAD, SVNDepth.INFINITY, false, false);
   }
 
-  Collection<String> list(String... paths) throws SVNException {
+  public Collection<String> list(String... paths) throws SVNException {
     Set<String> results = new HashSet<>();
 
     SvnList list = manager.getOperationFactory().createList();
@@ -111,33 +105,15 @@ class SvnTester {
     return results;
   }
 
-  Collection<Path> branchChangedFiles(Path worktree) throws SVNException {
-    SVNWCClient wcClient = manager.getWCClient();
-    SVNInfo svnInfo = wcClient.doInfo(worktree.toFile(), null);
-    String base = "/" + Paths.get(svnInfo.getRepositoryRootURL().getPath()).relativize(Paths.get(svnInfo.getURL().getPath()));
-
-    SVNLogClient svnLogClient = manager.getLogClient();
-    List<Path> paths = new ArrayList<>();
-    svnLogClient.doLog(new File[] {worktree.toFile()}, null, null, null, true, true, 0, svnLogEntry -> {
-      svnLogEntry.getChangedPaths().values().forEach(entry -> {
-        if (entry.getCopyPath() == null) {
-          paths.add(Paths.get(base).relativize(Paths.get(entry.getPath())));
-        }
-      });
-    });
-
-    return paths;
-  }
-
-  void createFile(Path worktree, String filename) throws IOException {
+  public void createFile(Path worktree, String filename) throws IOException {
     Files.write(worktree.resolve(filename), (filename + "\n").getBytes());
   }
 
-  void modifyFile(Path worktree, String filename) throws IOException {
+  public void modifyFile(Path worktree, String filename) throws IOException {
     Files.write(worktree.resolve(filename), (filename + "\n").getBytes(), StandardOpenOption.APPEND);
   }
 
-  void deleteFile(Path worktree, String filename) throws IOException, SVNException {
+  public void deleteFile(Path worktree, String filename) throws IOException, SVNException {
     manager.getWCClient().doDelete(worktree.resolve(filename).toFile(), false, false);
   }
 }
