@@ -84,6 +84,10 @@ class SvnTester {
     manager.getCommitClient().doCommit(new File[] {worktree.toFile()}, false, "commit " + worktree, null, null, false, false, null);
   }
 
+  void update(Path worktree) throws SVNException {
+    manager.getUpdateClient().doUpdate(new File[] {worktree.toFile()}, SVNRevision.HEAD, SVNDepth.INFINITY, false, false);
+  }
+
   Collection<String> list(String... paths) throws SVNException {
     Set<String> results = new HashSet<>();
 
