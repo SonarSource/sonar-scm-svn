@@ -28,7 +28,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.sonar.api.batch.scm.ScmBranchProvider;
+import org.sonar.api.batch.scm.ScmProvider;
 import org.tmatesoft.svn.core.SVNException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,7 +63,7 @@ public class SvnScmProviderTest {
 
   @Test
   public void testAutodetection() throws IOException {
-    ScmBranchProvider scmBranchProvider = newScmBranchProvider();
+    ScmProvider scmBranchProvider = newScmProvider();
 
     File baseDirEmpty = temp.newFolder();
     assertThat(scmBranchProvider.supports(baseDirEmpty)).isFalse();
@@ -102,7 +102,7 @@ public class SvnScmProviderTest {
 
     svnTester.update(b1);
 
-    assertThat(newScmBranchProvider().branchChangedFiles("trunk", b1))
+    assertThat(newScmProvider().branchChangedFiles("trunk", b1))
       .containsExactlyInAnyOrder(
         b1.resolve("file-b1.xoo"),
         b1.resolve("file-m1.xoo"));
@@ -114,17 +114,17 @@ public class SvnScmProviderTest {
     svnTester.createBranch("b1");
     svnTester.checkout(b1, "branches/b1");
 
-    assertThat(newScmBranchProvider().branchChangedFiles("b1", b1)).isEmpty();
+    assertThat(newScmProvider().branchChangedFiles("b1", b1)).isEmpty();
   }
 
   @Test
   public void branchChangedFiles_should_return_null_when_repo_nonexistent() throws IOException {
-    assertThat(newScmBranchProvider().branchChangedFiles("trunk", temp.newFolder().toPath())).isNull();
+    assertThat(newScmProvider().branchChangedFiles("trunk", temp.newFolder().toPath())).isNull();
   }
 
   @Test
   public void branchChangedFiles_should_return_null_dir_nonexistent() throws IOException {
-    assertThat(newScmBranchProvider().branchChangedFiles("trunk", temp.getRoot().toPath().resolve("nonexistent"))).isNull();
+    assertThat(newScmProvider().branchChangedFiles("trunk", temp.getRoot().toPath().resolve("nonexistent"))).isNull();
   }
 
   private void createAndCommitFile(Path worktree, String filename) throws IOException, SVNException {
@@ -143,7 +143,7 @@ public class SvnScmProviderTest {
     svnTester.commit(worktree);
   }
 
-  private ScmBranchProvider newScmBranchProvider() {
+  private SvnScmProvider newScmProvider() {
     return new SvnScmProvider(mock(SvnConfiguration.class), new SvnBlameCommand(mock(SvnConfiguration.class)));
   }
 }

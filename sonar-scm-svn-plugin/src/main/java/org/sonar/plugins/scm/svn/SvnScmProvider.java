@@ -26,7 +26,7 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.sonar.api.batch.scm.BlameCommand;
-import org.sonar.api.batch.scm.ScmBranchProvider;
+import org.sonar.api.batch.scm.ScmProvider;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.tmatesoft.svn.core.SVNException;
@@ -38,7 +38,7 @@ import org.tmatesoft.svn.core.wc.SVNWCClient;
 
 import static org.sonar.plugins.scm.svn.SvnPlugin.newSvnClientManager;
 
-public class SvnScmProvider extends ScmBranchProvider {
+public class SvnScmProvider extends ScmProvider {
 
   private static final Logger LOG = Loggers.get(SvnScmProvider.class);
 
