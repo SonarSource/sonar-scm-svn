@@ -30,6 +30,7 @@ import org.sonar.api.batch.scm.ScmBranchProvider;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.SVNLogEntryPath;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNInfo;
 import org.tmatesoft.svn.core.wc.SVNLogClient;
@@ -85,7 +86,7 @@ public class SvnScmProvider extends ScmBranchProvider {
       Set<Path> paths = new HashSet<>();
       svnLogClient.doLog(new File[] {rootBaseDir.toFile()}, null, null, null, true, true, 0, svnLogEntry -> {
         svnLogEntry.getChangedPaths().values().forEach(entry -> {
-          if (entry.getCopyPath() == null) {
+          if (entry.getCopyPath() == null && (entry.getType() == SVNLogEntryPath.TYPE_ADDED || entry.getType() == SVNLogEntryPath.TYPE_MODIFIED)) {
             paths.add(rootBaseDir.resolve(Paths.get(base).relativize(Paths.get(entry.getPath()))));
           }
         });

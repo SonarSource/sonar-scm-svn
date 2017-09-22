@@ -47,6 +47,10 @@ public class SvnScmProviderTest {
   @Before
   public void before() throws IOException, SVNException {
     tester = new SvnTester(temp.newFolder().toPath());
+
+    Path worktree = temp.newFolder().toPath();
+    tester.checkout(worktree, "trunk");
+    createAndCommitFile(worktree, "file-in-first-commit.xoo");
   }
 
   @Test
@@ -77,25 +81,30 @@ public class SvnScmProviderTest {
 
   @Test
   public void branchChangedFiles_from_diverged() throws IOException, SVNException {
-    Path b1 = temp.newFolder().toPath();
+    Path trunk = temp.newFolder().toPath();
+    tester.checkout(trunk, "trunk");
+    createAndCommitFile(trunk, "file-m1.xoo");
+    createAndCommitFile(trunk, "file-m2.xoo");
+    createAndCommitFile(trunk, "file-m3.xoo");
     tester.createBranch("b1");
+
+    // still on trunk
+    appendToAndCommitFile(trunk, "file-m3.xoo");
+    createAndCommitFile(trunk, "file-m4.xoo");
+
+    Path b1 = temp.newFolder().toPath();
     tester.checkout(b1, "branches/b1");
-    tester.createFile(b1, "file-b1");
-    tester.add(b1, "file-b1");
-    tester.commit(b1);
+    createAndCommitFile(b1, "file-b1.xoo");
+    appendToAndCommitFile(b1, "file-m1.xoo");
+    deleteAndCommitFile(b1, "file-m2.xoo");
 
-    Path b2 = temp.newFolder().toPath();
-    tester.createBranch("b2");
-    tester.checkout(b2, "branches/b2");
-    tester.createFile(b2, "file-b2");
-    tester.add(b2, "file-b2");
-    tester.commit(b2);
+    Path b1updated = temp.newFolder().toPath();
+    tester.checkout(b1updated, "branches/b1");
 
-    Path b2updated = temp.newFolder().toPath();
-    tester.checkout(b2updated, "branches/b2");
-
-    assertThat(newScmBranchProvider().branchChangedFiles("trunk", b2updated))
-      .containsOnly(b2updated.resolve("file-b2"));
+    assertThat(newScmBranchProvider().branchChangedFiles("trunk", b1updated))
+      .containsExactlyInAnyOrder(
+        b1updated.resolve("file-b1.xoo"),
+        b1updated.resolve("file-m1.xoo"));
   }
 
   @Test
@@ -115,6 +124,22 @@ public class SvnScmProviderTest {
   @Test
   public void branchChangedFiles_should_return_null_dir_nonexistent() throws IOException {
     assertThat(newScmBranchProvider().branchChangedFiles("trunk", temp.getRoot().toPath().resolve("nonexistent"))).isNull();
+  }
+
+  private void createAndCommitFile(Path worktree, String filename) throws IOException, SVNException {
+    tester.createFile(worktree, filename);
+    tester.add(worktree, filename);
+    tester.commit(worktree);
+  }
+
+  private void appendToAndCommitFile(Path worktree, String filename) throws IOException, SVNException {
+    tester.modifyFile(worktree, filename);
+    tester.commit(worktree);
+  }
+
+  private void deleteAndCommitFile(Path worktree, String filename) throws IOException, SVNException {
+    tester.deleteFile(worktree, filename);
+    tester.commit(worktree);
   }
 
   private ScmBranchProvider newScmBranchProvider() {

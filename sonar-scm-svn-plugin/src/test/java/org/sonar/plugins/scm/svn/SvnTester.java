@@ -126,10 +126,14 @@ class SvnTester {
   }
 
   void createFile(Path worktree, String filename) throws IOException {
-    Files.write(worktree.resolve(filename), filename.getBytes());
+    Files.write(worktree.resolve(filename), (filename + "\n").getBytes());
   }
 
   void modifyFile(Path worktree, String filename) throws IOException {
-    Files.write(worktree.resolve(filename), filename.getBytes(), StandardOpenOption.APPEND);
+    Files.write(worktree.resolve(filename), (filename + "\n").getBytes(), StandardOpenOption.APPEND);
+  }
+
+  void deleteFile(Path worktree, String filename) throws IOException, SVNException {
+    manager.getWCClient().doDelete(worktree.resolve(filename).toFile(), false, false);
   }
 }
