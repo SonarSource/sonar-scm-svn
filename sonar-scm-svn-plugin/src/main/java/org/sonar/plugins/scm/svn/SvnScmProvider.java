@@ -96,7 +96,7 @@ public class SvnScmProvider extends ScmProvider {
       });
       return paths;
     } catch (SVNException e) {
-      LOG.warn(e.getMessage(), e);
+      LOG.warn(e.getMessage());
     } finally {
       if (clientManager != null) {
         try {
