@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonar.api.config.PropertyDefinitions;
 import org.sonar.api.config.Settings;
+import org.sonar.api.config.internal.MapSettings;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -36,7 +37,7 @@ public class SvnConfigurationTest {
 
   @Test
   public void sanityCheck() throws Exception {
-    Settings settings = new Settings(new PropertyDefinitions(SvnConfiguration.getProperties()));
+    Settings settings = new MapSettings(new PropertyDefinitions(SvnConfiguration.getProperties()));
     SvnConfiguration config = new SvnConfiguration(settings);
 
     assertThat(config.username()).isNull();
@@ -63,7 +64,5 @@ public class SvnConfigurationTest {
     } catch (Exception e) {
       assertThat(e).hasMessageContaining("Unable to read private key from ");
     }
-
   }
-
 }

@@ -19,20 +19,18 @@
  */
 package org.sonar.plugins.scm.svn;
 
-import com.google.common.io.Closeables;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,6 +43,7 @@ import org.mockito.ArgumentCaptor;
 import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
+import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
 import org.sonar.api.batch.scm.BlameCommand.BlameInput;
 import org.sonar.api.batch.scm.BlameCommand.BlameOutput;
 import org.sonar.api.batch.scm.BlameLine;
@@ -112,14 +111,15 @@ public class SvnBlameCommandTest {
     File baseDir = new File(checkout(scmUrl), "dummy-svn");
 
     when(fs.baseDir()).thenReturn(baseDir);
-    DefaultInputFile inputFile = new DefaultInputFile("foo", DUMMY_JAVA)
+    DefaultInputFile inputFile = new TestInputFileBuilder("foo", DUMMY_JAVA)
       .setLines(27)
-      .setModuleBaseDir(baseDir.toPath());
+      .setModuleBaseDir(baseDir.toPath())
+      .build();
 
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    newSvnBlameCommand().blame(input, blameResult);
     ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
     verify(blameResult).blameResult(eq(inputFile), captor.capture());
     List<BlameLine> result = captor.getValue();
@@ -189,14 +189,15 @@ public class SvnBlameCommandTest {
     File baseDir = new File(checkout(scmUrl), "dummy-svn/trunk");
 
     when(fs.baseDir()).thenReturn(baseDir);
-    DefaultInputFile inputFile = new DefaultInputFile("foo", DUMMY_JAVA)
+    DefaultInputFile inputFile = new TestInputFileBuilder("foo", DUMMY_JAVA)
       .setLines(27)
-      .setModuleBaseDir(baseDir.toPath());
+      .setModuleBaseDir(baseDir.toPath())
+      .build();
 
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    newSvnBlameCommand().blame(input, blameResult);
     ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
     verify(blameResult).blameResult(eq(inputFile), captor.capture());
     List<BlameLine> result = captor.getValue();
@@ -241,16 +242,17 @@ public class SvnBlameCommandTest {
     File baseDir = new File(checkout(scmUrl), "dummy-svn");
 
     when(fs.baseDir()).thenReturn(baseDir);
-    DefaultInputFile inputFile = new DefaultInputFile("foo", DUMMY_JAVA)
+    DefaultInputFile inputFile = new TestInputFileBuilder("foo", DUMMY_JAVA)
       .setLines(28)
-      .setModuleBaseDir(baseDir.toPath());
+      .setModuleBaseDir(baseDir.toPath())
+      .build();
 
-    FileUtils.write(new File(baseDir, DUMMY_JAVA), "\n//foo", true);
+    Files.write(baseDir.toPath().resolve(DUMMY_JAVA), "\n//foo".getBytes(), StandardOpenOption.APPEND);
 
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    newSvnBlameCommand().blame(input, blameResult);
     verifyZeroInteractions(blameResult);
   }
 
@@ -263,14 +265,15 @@ public class SvnBlameCommandTest {
     File baseDir = new File(checkout(scmUrl), "dummy-svn");
 
     when(fs.baseDir()).thenReturn(baseDir);
-    DefaultInputFile inputFile = new DefaultInputFile("foo", DUMMY_JAVA.toLowerCase())
+    DefaultInputFile inputFile = new TestInputFileBuilder("foo", DUMMY_JAVA.toLowerCase())
       .setLines(27)
-      .setModuleBaseDir(baseDir.toPath());
+      .setModuleBaseDir(baseDir.toPath())
+      .build();
 
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    newSvnBlameCommand().blame(input, blameResult);
     verifyZeroInteractions(blameResult);
   }
 
@@ -283,16 +286,17 @@ public class SvnBlameCommandTest {
 
     when(fs.baseDir()).thenReturn(baseDir);
     String relativePath = "src/main/java/org/dummy/Dummy2.java";
-    DefaultInputFile inputFile = new DefaultInputFile("foo", relativePath)
+    DefaultInputFile inputFile = new TestInputFileBuilder("foo", relativePath)
       .setLines(28)
-      .setModuleBaseDir(baseDir.toPath());
+      .setModuleBaseDir(baseDir.toPath())
+      .build();
 
-    FileUtils.write(new File(baseDir, relativePath), "package org.dummy;\npublic class Dummy2 {}");
+    Files.write(baseDir.toPath().resolve(relativePath), "package org.dummy;\npublic class Dummy2 {}".getBytes());
 
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    newSvnBlameCommand().blame(input, blameResult);
     verifyZeroInteractions(blameResult);
   }
 
@@ -305,16 +309,19 @@ public class SvnBlameCommandTest {
 
     when(fs.baseDir()).thenReturn(baseDir);
     String relativePath = "src/main/java/org/dummy2/dummy/Dummy.java";
-    DefaultInputFile inputFile = new DefaultInputFile("foo", relativePath)
+    DefaultInputFile inputFile = new TestInputFileBuilder("foo", relativePath)
       .setLines(28)
-      .setModuleBaseDir(baseDir.toPath());
+      .setModuleBaseDir(baseDir.toPath())
+      .build();
 
-    FileUtils.write(new File(baseDir, relativePath), "package org.dummy;\npublic class Dummy {}");
+    Path filepath = new File(baseDir, relativePath).toPath();
+    Files.createDirectories(filepath.getParent());
+    Files.write(filepath, "package org.dummy;\npublic class Dummy {}".getBytes());
 
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    newSvnBlameCommand().blame(input, blameResult);
     verifyZeroInteractions(blameResult);
   }
 
@@ -327,19 +334,14 @@ public class SvnBlameCommandTest {
           ZipEntry entry = entries.nextElement();
           File to = new File(toDir, entry.getName());
           if (entry.isDirectory()) {
-            FileUtils.forceMkdir(to);
+            Files.createDirectories(to.toPath());
           } else {
             File parent = to.getParentFile();
             if (parent != null) {
-              FileUtils.forceMkdir(parent);
+              Files.createDirectories(parent.toPath());
             }
 
-            OutputStream fos = new FileOutputStream(to);
-            try {
-              IOUtils.copy(zipFile.getInputStream(entry), fos);
-            } finally {
-              Closeables.closeQuietly(fos);
-            }
+            Files.copy(zipFile.getInputStream(entry), to.toPath());
           }
         }
       } finally {
@@ -354,4 +356,7 @@ public class SvnBlameCommandTest {
     return file.getAbsolutePath().replace('\\', '/');
   }
 
+  private SvnBlameCommand newSvnBlameCommand() {
+    return new SvnBlameCommand(mock(SvnConfiguration.class));
+  }
 }
