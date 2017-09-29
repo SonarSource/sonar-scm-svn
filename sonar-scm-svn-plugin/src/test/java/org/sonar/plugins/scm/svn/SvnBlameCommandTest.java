@@ -119,7 +119,7 @@ public class SvnBlameCommandTest {
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    newSvnBlameCommand().blame(input, blameResult);
     ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
     verify(blameResult).blameResult(eq(inputFile), captor.capture());
     List<BlameLine> result = captor.getValue();
@@ -197,7 +197,7 @@ public class SvnBlameCommandTest {
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    newSvnBlameCommand().blame(input, blameResult);
     ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
     verify(blameResult).blameResult(eq(inputFile), captor.capture());
     List<BlameLine> result = captor.getValue();
@@ -252,7 +252,7 @@ public class SvnBlameCommandTest {
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    newSvnBlameCommand().blame(input, blameResult);
     verifyZeroInteractions(blameResult);
   }
 
@@ -273,7 +273,7 @@ public class SvnBlameCommandTest {
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    newSvnBlameCommand().blame(input, blameResult);
     verifyZeroInteractions(blameResult);
   }
 
@@ -296,7 +296,7 @@ public class SvnBlameCommandTest {
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    newSvnBlameCommand().blame(input, blameResult);
     verifyZeroInteractions(blameResult);
   }
 
@@ -321,7 +321,7 @@ public class SvnBlameCommandTest {
     BlameOutput blameResult = mock(BlameOutput.class);
     when(input.filesToBlame()).thenReturn(Arrays.<InputFile>asList(inputFile));
 
-    new SvnBlameCommand(mock(SvnConfiguration.class)).blame(input, blameResult);
+    newSvnBlameCommand().blame(input, blameResult);
     verifyZeroInteractions(blameResult);
   }
 
@@ -356,4 +356,7 @@ public class SvnBlameCommandTest {
     return file.getAbsolutePath().replace('\\', '/');
   }
 
+  private SvnBlameCommand newSvnBlameCommand() {
+    return new SvnBlameCommand(mock(SvnConfiguration.class));
+  }
 }
