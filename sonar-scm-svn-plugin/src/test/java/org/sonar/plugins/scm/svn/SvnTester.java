@@ -71,11 +71,11 @@ public class SvnTester {
   }
 
   public void add(Path worktree, String filename) throws SVNException {
-    manager.getWCClient().doAdd(worktree.resolve(filename).toFile(), false, false, false, null, false, false, false);
+    manager.getWCClient().doAdd(worktree.resolve(filename).toFile(), false, false, false, SVNDepth.INFINITY, false, false, true);
   }
 
   public void commit(Path worktree) throws SVNException {
-    manager.getCommitClient().doCommit(new File[] {worktree.toFile()}, false, "commit " + worktree, null, null, false, false, null);
+    manager.getCommitClient().doCommit(new File[] {worktree.toFile()}, false, "commit " + worktree, null, null, false, false, SVNDepth.INFINITY);
   }
 
   public void update(Path worktree) throws SVNException {

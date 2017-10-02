@@ -96,7 +96,8 @@ public class SvnScmProviderTest {
 
     Path b1 = temp.newFolder().toPath();
     svnTester.checkout(b1, "branches/b1");
-    createAndCommitFile(b1, "file-b1.xoo");
+    Files.createDirectories(b1.resolve("sub"));
+    createAndCommitFile(b1, "sub/file-b1.xoo");
     appendToAndCommitFile(b1, "file-m1.xoo");
     deleteAndCommitFile(b1, "file-m2.xoo");
 
@@ -104,7 +105,7 @@ public class SvnScmProviderTest {
 
     assertThat(newScmProvider().branchChangedFiles("trunk", b1))
       .containsExactlyInAnyOrder(
-        b1.resolve("file-b1.xoo"),
+        b1.resolve("sub/file-b1.xoo"),
         b1.resolve("file-m1.xoo"));
   }
 
