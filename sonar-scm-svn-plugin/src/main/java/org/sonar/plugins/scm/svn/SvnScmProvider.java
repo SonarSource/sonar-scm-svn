@@ -87,9 +87,6 @@ public class SvnScmProvider extends ScmProvider {
       Set<Path> paths = new HashSet<>();
       svnLogClient.doLog(new File[] {rootBaseDir.toFile()}, null, null, null, true, true, 0, svnLogEntry -> {
         for (SVNLogEntryPath entry : svnLogEntry.getChangedPaths().values()) {
-          if (entry.getCopyPath() != null) {
-            break;
-          }
           if (entry.getKind().equals(SVNNodeKind.FILE) &&
             (entry.getType() == SVNLogEntryPath.TYPE_ADDED || entry.getType() == SVNLogEntryPath.TYPE_MODIFIED)) {
             paths.add(rootBaseDir.resolve(Paths.get(base).relativize(Paths.get(entry.getPath()))));

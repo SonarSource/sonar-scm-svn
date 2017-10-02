@@ -74,6 +74,12 @@ public class SvnTester {
     manager.getWCClient().doAdd(worktree.resolve(filename).toFile(), false, false, false, SVNDepth.INFINITY, false, false, true);
   }
 
+  public void copy(Path worktree, String src, String dst) throws SVNException {
+    SVNCopyClient copyClient = manager.getCopyClient();
+    SVNCopySource source = new SVNCopySource(SVNRevision.HEAD, SVNRevision.HEAD, worktree.resolve(src).toFile());
+    copyClient.doCopy(new SVNCopySource[]{source}, worktree.resolve(dst).toFile(), false, false, true);
+  }
+
   public void commit(Path worktree) throws SVNException {
     manager.getCommitClient().doCommit(new File[] {worktree.toFile()}, false, "commit " + worktree, null, null, false, false, SVNDepth.INFINITY);
   }
