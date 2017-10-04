@@ -22,6 +22,7 @@ package org.sonar.plugins.scm.svn;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import org.sonar.api.SonarPlugin;
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager;
@@ -56,6 +57,7 @@ public final class SvnPlugin extends SonarPlugin {
     return SVNClientManager.newInstance(options, authManager);
   }
 
+  @CheckForNull
   private static char[] getCharsOrNull(@Nullable String s) {
     return s != null ? s.toCharArray() : null;
   }
