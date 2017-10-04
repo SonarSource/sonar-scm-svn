@@ -22,11 +22,30 @@ package org.sonar.plugins.scm.svn;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.sonar.plugins.scm.svn.SvnPlugin.newSvnClientManager;
 
 public class SvnPluginTest {
 
   @Test
   public void getExtensions() {
     assertThat(new SvnPlugin().getExtensions().size()).isGreaterThan(1);
+  }
+
+  @Test
+  public void newSvnClientManager_with_auth() {
+    SvnConfiguration config = mock(SvnConfiguration.class);
+    when(config.password()).thenReturn("password");
+    when(config.passPhrase()).thenReturn("passPhrase");
+    assertThat(newSvnClientManager(config)).isNotNull();
+  }
+
+  @Test
+  public void newSvnClientManager_without_auth() {
+    SvnConfiguration config = mock(SvnConfiguration.class);
+    assertThat(config.password()).isNull();
+    assertThat(config.passPhrase()).isNull();
+    assertThat(newSvnClientManager(config)).isNotNull();
   }
 }

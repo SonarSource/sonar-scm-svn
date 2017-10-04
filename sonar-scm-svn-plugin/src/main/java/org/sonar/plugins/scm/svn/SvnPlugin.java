@@ -42,7 +42,7 @@ public final class SvnPlugin extends SonarPlugin {
     return result;
   }
 
-  public static SVNClientManager newSvnClientManager(SvnConfiguration configuration) {
+  static SVNClientManager newSvnClientManager(SvnConfiguration configuration) {
     ISVNOptions options = SVNWCUtil.createDefaultOptions(true);
     final char[] passwordValue = getCharsOrNull(configuration.password());
     final char[] passPhraseValue = getCharsOrNull(configuration.passPhrase());
