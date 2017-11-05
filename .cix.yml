@@ -4,10 +4,8 @@
 
 SQ_VERSION: 
   - DEV
-  - LTS
 
 SLAVE:
   - linux
 
-exclude:
   

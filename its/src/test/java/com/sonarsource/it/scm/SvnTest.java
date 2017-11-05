@@ -216,9 +216,10 @@ public class SvnTest {
   public static BuildResult runSonar(File baseDir, String... keyValues) {
     File pom = new File(baseDir, "pom.xml");
 
-    MavenBuild install = MavenBuild.create(pom).setGoals("clean install");
+    MavenBuild install = MavenBuild.create(pom).setGoals("clean install -Dmaven.compiler.source=1.6 -Dmaven.compiler.target=1.6");
     MavenBuild sonar = MavenBuild.create(pom).setGoals("sonar:sonar");
     sonar.setProperty("sonar.scm.disabled", "false");
+    sonar.setProperty("sonar.exclusions", "pom.xml");
     sonar.setProperties(keyValues);
     orchestrator.executeBuild(install);
     return orchestrator.executeBuild(sonar);
