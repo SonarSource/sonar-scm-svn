@@ -19,30 +19,15 @@
  */
 package org.sonar.plugins.scm.svn;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
-import org.sonar.api.SonarPlugin;
+import org.sonar.api.Plugin;
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager;
 import org.tmatesoft.svn.core.wc.ISVNOptions;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNWCUtil;
 
-public final class SvnPlugin extends SonarPlugin {
-
-  @Override
-  public List getExtensions() {
-    List result = new ArrayList();
-    result.addAll(Arrays.asList(
-      SvnScmProvider.class,
-      SvnBlameCommand.class,
-      SvnConfiguration.class));
-    result.addAll(SvnConfiguration.getProperties());
-    return result;
-  }
-
+public final class SvnPlugin implements Plugin {
   static SVNClientManager newSvnClientManager(SvnConfiguration configuration) {
     ISVNOptions options = SVNWCUtil.createDefaultOptions(true);
     final char[] passwordValue = getCharsOrNull(configuration.password());
@@ -60,5 +45,14 @@ public final class SvnPlugin extends SonarPlugin {
   @CheckForNull
   private static char[] getCharsOrNull(@Nullable String s) {
     return s != null ? s.toCharArray() : null;
+  }
+
+  @Override
+  public void define(Context context) {
+    context.addExtensions(SvnScmProvider.class,
+      SvnBlameCommand.class,
+      SvnConfiguration.class);
+    context.addExtensions(SvnConfiguration.getProperties());
+
   }
 }
