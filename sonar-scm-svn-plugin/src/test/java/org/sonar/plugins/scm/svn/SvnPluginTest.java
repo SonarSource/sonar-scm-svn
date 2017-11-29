@@ -20,6 +20,11 @@
 package org.sonar.plugins.scm.svn;
 
 import org.junit.Test;
+import org.sonar.api.Plugin;
+import org.sonar.api.SonarQubeSide;
+import org.sonar.api.SonarRuntime;
+import org.sonar.api.internal.SonarRuntimeImpl;
+import org.sonar.api.utils.Version;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -27,10 +32,12 @@ import static org.mockito.Mockito.when;
 import static org.sonar.plugins.scm.svn.SvnPlugin.newSvnClientManager;
 
 public class SvnPluginTest {
-
   @Test
   public void getExtensions() {
-    assertThat(new SvnPlugin().getExtensions().size()).isGreaterThan(1);
+    SonarRuntime runtime = SonarRuntimeImpl.forSonarQube(Version.create(5, 6), SonarQubeSide.SCANNER);
+    Plugin.Context context = new Plugin.Context(runtime);
+    new SvnPlugin().define(context);
+    assertThat(context.getExtensions()).hasSize(7);
   }
 
   @Test
@@ -48,4 +55,5 @@ public class SvnPluginTest {
     assertThat(config.passPhrase()).isNull();
     assertThat(newSvnClientManager(config)).isNotNull();
   }
+
 }
