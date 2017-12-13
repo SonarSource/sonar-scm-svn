@@ -83,7 +83,7 @@
             </goals>
             <configuration>
               <shadedArtifactAttached>false</shadedArtifactAttached>
-              <minimizeJar>true</minimizeJar>
+              <minimizeJar>false</minimizeJar>
               <createDependencyReducedPom>false</createDependencyReducedPom>
               <filters>
                 <filter>
