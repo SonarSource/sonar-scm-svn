@@ -67,7 +67,7 @@
         <artifactId>sonar-packaging-maven-plugin</artifactId>
         <version>1.17</version>
         <configuration>
-          <pluginName>${project.name}</pluginName>
+          <pluginName>Svn</pluginName>
           <skipDependenciesPackaging>true</skipDependenciesPackaging>
           <pluginClass>org.sonar.plugins.scm.svn.SvnPlugin</pluginClass>
           <sonarQubeMinVersion>5.6</sonarQubeMinVersion>
