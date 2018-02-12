@@ -149,7 +149,7 @@ public class SvnTest {
       "src/main/java/org/dummy/Dummy.java",
       "src/main/java/org/dummy/Dummy2.java");
 
-    assertThat(getScmData("dummy:dummy:src/main/java/org/dummy/Dummy.java")).isEmpty();
+    assertThat(getScmData("dummy:dummy:src/main/java/org/dummy/Dummy.java")).hasSize(29);
   }
 
   // SONAR-5843
