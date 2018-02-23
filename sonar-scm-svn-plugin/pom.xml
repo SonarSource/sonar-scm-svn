@@ -12,6 +12,10 @@
   <name>SonarQube :: Plugins :: SCM :: SVN</name>
   <description>Subversion SCM Provider for SonarQube</description>
   <url>http://redirect.sonarsource.com/plugins/scmsvn.html</url>
+  
+  <scm>
+    <url>https://github.com/SonarSource/sonar-scm-svn</url>
+  </scm>
 
 
   <properties>
