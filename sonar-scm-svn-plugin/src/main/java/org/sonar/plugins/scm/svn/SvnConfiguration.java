@@ -23,17 +23,18 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import javax.annotation.CheckForNull;
-import org.sonar.api.BatchComponent;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.PropertyType;
 import org.sonar.api.batch.InstantiationStrategy;
+import org.sonar.api.batch.ScannerSide;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.config.Settings;
 import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.MessageException;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
-public class SvnConfiguration implements BatchComponent {
+@ScannerSide
+public class SvnConfiguration {
 
   private static final String CATEGORY_SVN = "SVN";
   public static final String USER_PROP_KEY = "sonar.svn.username";
