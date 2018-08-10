@@ -134,9 +134,8 @@ public class SvnScmProviderTest {
     appendToAndCommitFile(b1, "file-m1.xoo");
     deleteAndCommitFile(b1, "file-m2.xoo");
 
-    // TODO do not include files that were added once and then deleted later
-    // createAndCommitFile(b1, "file-m5.xoo");
-    // deleteAndCommitFile(b1, "file-m5.xoo");
+    createAndCommitFile(b1, "file-m5.xoo");
+    deleteAndCommitFile(b1, "file-m5.xoo");
 
     svnCopyAndCommitFile(b1, "file-m1.xoo", "file-m1-copy.xoo");
     appendToAndCommitFile(b1, "file-m1.xoo");
