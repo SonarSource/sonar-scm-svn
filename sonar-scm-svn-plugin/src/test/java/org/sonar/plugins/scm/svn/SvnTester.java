@@ -71,7 +71,7 @@ public class SvnTester {
   }
 
   public void add(Path worktree, String filename) throws SVNException {
-    manager.getWCClient().doAdd(worktree.resolve(filename).toFile(), false, false, false, SVNDepth.INFINITY, false, false, true);
+    manager.getWCClient().doAdd(worktree.resolve(filename).toFile(), true, false, false, SVNDepth.INFINITY, false, false, true);
   }
 
   public void copy(Path worktree, String src, String dst) throws SVNException {
@@ -111,15 +111,19 @@ public class SvnTester {
     return results;
   }
 
+  public void createFile(Path worktree, String filename, String content) throws IOException {
+    Files.write(worktree.resolve(filename), content.getBytes());
+  }
+
   public void createFile(Path worktree, String filename) throws IOException {
-    Files.write(worktree.resolve(filename), (filename + "\n").getBytes());
+    createFile(worktree, filename, filename + "\n");
   }
 
   public void modifyFile(Path worktree, String filename) throws IOException {
     Files.write(worktree.resolve(filename), (filename + "\n").getBytes(), StandardOpenOption.APPEND);
   }
 
-  public void deleteFile(Path worktree, String filename) throws IOException, SVNException {
+  public void deleteFile(Path worktree, String filename) throws SVNException {
     manager.getWCClient().doDelete(worktree.resolve(filename).toFile(), false, false);
   }
 }
