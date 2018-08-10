@@ -22,19 +22,24 @@ package org.sonar.plugins.scm.svn;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.sonar.api.batch.scm.BlameCommand;
 import org.sonar.api.batch.scm.ScmProvider;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
+import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNLogEntryPath;
 import org.tmatesoft.svn.core.SVNNodeKind;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
+import org.tmatesoft.svn.core.wc.SVNDiffClient;
 import org.tmatesoft.svn.core.wc.SVNInfo;
 import org.tmatesoft.svn.core.wc.SVNLogClient;
+import org.tmatesoft.svn.core.wc.SVNRevision;
 import org.tmatesoft.svn.core.wc.SVNWCClient;
 
 import static org.sonar.plugins.scm.svn.SvnPlugin.newSvnClientManager;
@@ -107,5 +112,43 @@ public class SvnScmProvider extends ScmProvider {
     }
 
     return null;
+  }
+
+  public Map<Path, Set<Integer>> branchChangedLines(String targetBranchName, Path rootBaseDir, Set<Path> changedFiles) {
+    SVNClientManager clientManager = null;
+    try {
+      clientManager = newSvnClientManager(configuration);
+
+      // find reference revision number: the copy point
+      SVNLogClient svnLogClient = clientManager.getLogClient();
+      long[] revisionCounter = {0};
+      svnLogClient.doLog(new File[] {rootBaseDir.toFile()}, null, null, null, true, true, 0, svnLogEntry -> {
+        revisionCounter[0] = svnLogEntry.getRevision();
+      });
+
+      long startRev = revisionCounter[0];
+
+      SVNDiffClient svnDiffClient = clientManager.getDiffClient();
+      File path = rootBaseDir.toFile();
+      ChangedLinesComputer computer = newChangedLinesComputer(changedFiles);
+      svnDiffClient.doDiff(path, SVNRevision.create(startRev), path, SVNRevision.HEAD, SVNDepth.INFINITY, false, computer.receiver(), null);
+      return computer.changedLines();
+    } catch (Exception e) {
+      LOG.warn("Failed to get changed lines from Subversion", e);
+    } finally {
+      if (clientManager != null) {
+        try {
+          clientManager.dispose();
+        } catch (Exception e) {
+          LOG.warn("Unable to dispose SVN ClientManager", e);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  ChangedLinesComputer newChangedLinesComputer(Set<Path> changedFiles) {
+    return new ChangedLinesComputer(changedFiles);
   }
 }
