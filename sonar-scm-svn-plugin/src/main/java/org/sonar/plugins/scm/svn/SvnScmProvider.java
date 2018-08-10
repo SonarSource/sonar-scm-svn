@@ -22,11 +22,10 @@ package org.sonar.plugins.scm.svn;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nullable;
+import javax.annotation.CheckForNull;
 import org.sonar.api.batch.scm.BlameCommand;
 import org.sonar.api.batch.scm.ScmProvider;
 import org.sonar.api.utils.log.Logger;
@@ -78,27 +77,13 @@ public class SvnScmProvider extends ScmProvider {
     return blameCommand;
   }
 
-  @Nullable
+  @CheckForNull
   @Override
   public Set<Path> branchChangedFiles(String targetBranchName, Path rootBaseDir) {
     SVNClientManager clientManager = null;
     try {
       clientManager = newSvnClientManager(configuration);
-      SVNWCClient wcClient = clientManager.getWCClient();
-      SVNInfo svnInfo = wcClient.doInfo(rootBaseDir.toFile(), null);
-      String base = "/" + Paths.get(svnInfo.getRepositoryRootURL().getPath()).relativize(Paths.get(svnInfo.getURL().getPath()));
-
-      SVNLogClient svnLogClient = clientManager.getLogClient();
-      Set<Path> paths = new HashSet<>();
-      svnLogClient.doLog(new File[] {rootBaseDir.toFile()}, null, null, null, true, true, 0, svnLogEntry -> {
-        for (SVNLogEntryPath entry : svnLogEntry.getChangedPaths().values()) {
-          if (entry.getKind().equals(SVNNodeKind.FILE) &&
-            (entry.getType() == SVNLogEntryPath.TYPE_ADDED || entry.getType() == SVNLogEntryPath.TYPE_MODIFIED)) {
-            paths.add(rootBaseDir.resolve(Paths.get(base).relativize(Paths.get(entry.getPath()))));
-          }
-        }
-      });
-      return paths;
+      return computeChangedPaths(rootBaseDir, clientManager);
     } catch (SVNException e) {
       LOG.warn(e.getMessage());
     } finally {
@@ -114,6 +99,41 @@ public class SvnScmProvider extends ScmProvider {
     return null;
   }
 
+  private static Set<Path> computeChangedPaths(Path rootBaseDir, SVNClientManager clientManager) throws SVNException {
+    SVNWCClient wcClient = clientManager.getWCClient();
+    SVNInfo svnInfo = wcClient.doInfo(rootBaseDir.toFile(), null);
+    String base = "/" + Paths.get(svnInfo.getRepositoryRootURL().getPath()).relativize(Paths.get(svnInfo.getURL().getPath()));
+
+    // We inspect "svn log" from latest revision until copy-point.
+    // The same path may appear in multiple commits, the ordering of changes and removals is important.
+    Set<Path> paths = new HashSet<>();
+    Set<Path> removed = new HashSet<>();
+
+    SVNLogClient svnLogClient = clientManager.getLogClient();
+    svnLogClient.doLog(new File[] {rootBaseDir.toFile()}, null, null, null, true, true, 0, svnLogEntry -> {
+      for (SVNLogEntryPath entry : svnLogEntry.getChangedPaths().values()) {
+        if (entry.getKind().equals(SVNNodeKind.FILE)) {
+          Path path = rootBaseDir.resolve(Paths.get(base).relativize(Paths.get(entry.getPath())));
+          if (isModified(entry)) {
+            // Skip if the path is removed in a more recent commit
+            if (!removed.contains(path)) {
+              paths.add(path);
+            }
+          } else if (entry.getType() == SVNLogEntryPath.TYPE_DELETED) {
+            removed.add(path);
+          }
+        }
+      }
+    });
+    return paths;
+  }
+
+  private static boolean isModified(SVNLogEntryPath entry) {
+    return entry.getType() == SVNLogEntryPath.TYPE_ADDED
+      || entry.getType() == SVNLogEntryPath.TYPE_MODIFIED;
+  }
+
+  @CheckForNull
   public Map<Path, Set<Integer>> branchChangedLines(String targetBranchName, Path rootBaseDir, Set<Path> changedFiles) {
     SVNClientManager clientManager = null;
     try {
@@ -122,9 +142,8 @@ public class SvnScmProvider extends ScmProvider {
       // find reference revision number: the copy point
       SVNLogClient svnLogClient = clientManager.getLogClient();
       long[] revisionCounter = {0};
-      svnLogClient.doLog(new File[] {rootBaseDir.toFile()}, null, null, null, true, true, 0, svnLogEntry -> {
-        revisionCounter[0] = svnLogEntry.getRevision();
-      });
+      svnLogClient.doLog(new File[] {rootBaseDir.toFile()}, null, null, null, true, true, 0,
+        svnLogEntry -> revisionCounter[0] = svnLogEntry.getRevision());
 
       long startRev = revisionCounter[0];
 
