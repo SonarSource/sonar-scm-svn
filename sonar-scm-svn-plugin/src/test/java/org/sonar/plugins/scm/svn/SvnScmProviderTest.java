@@ -159,11 +159,14 @@ public class SvnScmProviderTest {
     // a file that should not yield any results
     changedFiles.add(b1.resolve("nonexistent"));
 
+    // modify file without committing to it
+    svnTester.appendToFile(b1, "file-m1.xoo");
+
     assertThat(newScmProvider().branchChangedLines("trunk", b1, changedFiles))
       .isEqualTo(
         ImmutableMap.of(
           b1.resolve("lao.txt"), ImmutableSet.of(2, 3, 11, 12, 13),
-          b1.resolve("file-m1.xoo"), ImmutableSet.of(2, 3),
+          b1.resolve("file-m1.xoo"), ImmutableSet.of(2, 3, 4),
           b1.resolve("file-m1-copy.xoo"), ImmutableSet.of(1, 2)));
 
     assertThat(newScmProvider().branchChangedLines("trunk", b1, Collections.singleton(b1.resolve("nonexistent"))))
