@@ -150,7 +150,7 @@ public class SvnScmProvider extends ScmProvider {
       SVNDiffClient svnDiffClient = clientManager.getDiffClient();
       File path = rootBaseDir.toFile();
       ChangedLinesComputer computer = newChangedLinesComputer(changedFiles);
-      svnDiffClient.doDiff(path, SVNRevision.create(startRev), path, SVNRevision.HEAD, SVNDepth.INFINITY, false, computer.receiver(), null);
+      svnDiffClient.doDiff(path, SVNRevision.create(startRev), path, SVNRevision.WORKING, SVNDepth.INFINITY, false, computer.receiver(), null);
       return computer.changedLines();
     } catch (Exception e) {
       LOG.warn("Failed to get changed lines from Subversion", e);
