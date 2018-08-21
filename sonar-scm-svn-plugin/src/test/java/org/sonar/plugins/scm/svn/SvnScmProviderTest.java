@@ -234,7 +234,7 @@ public class SvnScmProviderTest {
   }
 
   private void appendToAndCommitFile(Path worktree, String filename) throws IOException, SVNException {
-    svnTester.modifyFile(worktree, filename);
+    svnTester.appendToFile(worktree, filename);
     svnTester.commit(worktree);
   }
 
