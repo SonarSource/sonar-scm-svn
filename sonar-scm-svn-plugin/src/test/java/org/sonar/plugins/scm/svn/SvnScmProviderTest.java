@@ -140,6 +140,9 @@ public class SvnScmProviderTest {
     svnCopyAndCommitFile(b1, "file-m1.xoo", "file-m1-copy.xoo");
     appendToAndCommitFile(b1, "file-m1.xoo");
 
+    // modify file without committing it -> should not be included (think generated files)
+    svnTester.appendToFile(b1, "file-m3.xoo");
+
     svnTester.update(b1);
 
     Set<Path> changedFiles = newScmProvider().branchChangedFiles("trunk", b1);
