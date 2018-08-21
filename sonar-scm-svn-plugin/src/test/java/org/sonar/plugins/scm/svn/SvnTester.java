@@ -119,7 +119,7 @@ public class SvnTester {
     createFile(worktree, filename, filename + "\n");
   }
 
-  public void modifyFile(Path worktree, String filename) throws IOException {
+  public void appendToFile(Path worktree, String filename) throws IOException {
     Files.write(worktree.resolve(filename), (filename + "\n").getBytes(), StandardOpenOption.APPEND);
   }
 
