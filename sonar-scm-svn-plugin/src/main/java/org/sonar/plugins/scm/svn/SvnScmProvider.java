@@ -134,6 +134,7 @@ public class SvnScmProvider extends ScmProvider {
   }
 
   @CheckForNull
+  @Override
   public Map<Path, Set<Integer>> branchChangedLines(String targetBranchName, Path rootBaseDir, Set<Path> changedFiles) {
     SVNClientManager clientManager = null;
     try {
