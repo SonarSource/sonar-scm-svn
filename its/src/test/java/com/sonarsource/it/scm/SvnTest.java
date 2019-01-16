@@ -1,6 +1,6 @@
 /*
  * SVN :: Integration Tests
- * Copyright (C) 2014-2018 SonarSource SA
+ * Copyright (C) 2014-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -19,19 +19,19 @@
  */
 package com.sonarsource.it.scm;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Throwables;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.MavenBuild;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.util.ZipUtils;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +41,6 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-import org.apache.commons.lang.time.DateUtils;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -67,6 +66,7 @@ import org.tmatesoft.svn.core.wc.SVNWCUtil;
 import org.tmatesoft.svn.core.wc2.SvnCheckout;
 import org.tmatesoft.svn.core.wc2.SvnTarget;
 
+import static org.apache.commons.lang.StringUtils.substringAfter;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
@@ -79,12 +79,10 @@ public class SvnTest {
 
   @ClassRule
   public static Orchestrator orchestrator = Orchestrator.builderEnv()
+    .setSonarVersion(System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE[6.7]"))
     .addPlugin(FileLocation.byWildcardMavenFilename(new File("../sonar-scm-svn-plugin/target"), "sonar-scm-svn-plugin-*.jar"))
-    .setOrchestratorProperty("javaVersion", "LATEST_RELEASE")
-    .addPlugin("java")
+    .addPlugin(MavenLocation.of("org.sonarsource.java", "sonar-java-plugin", "LATEST_RELEASE"))
     .build();
-
-  private boolean IS_5_2_OR_MORE = orchestrator.getServer().version().isGreaterThanOrEquals("5.2");
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
@@ -138,18 +136,19 @@ public class SvnTest {
     File baseDir = new File(checkout(scmUrl), baseDirSubPath);
 
     // Edit file
-    FileUtils.write(new File(baseDir, "src/main/java/org/dummy/Dummy.java"), "\n//bla\n//bla", Charsets.UTF_8, true);
+    FileUtils.write(new File(baseDir, "src/main/java/org/dummy/Dummy.java"), "\n//bla\n//bla", StandardCharsets.UTF_8, true);
     // New file
-    FileUtils.write(new File(baseDir, "src/main/java/org/dummy/Dummy2.java"), "package org.dummy;\npublic class Dummy2 {}", Charsets.UTF_8, true);
+    FileUtils.write(new File(baseDir, "src/main/java/org/dummy/Dummy2.java"), "package org.dummy;\npublic class Dummy2 {}", StandardCharsets.UTF_8, true);
 
     BuildResult result = runSonar(baseDir);
 
-    assertThat(result.getLogs()).containsSequence(
-      "Missing blame information for the following files:",
-      "src/main/java/org/dummy/Dummy.java",
+    String logs = result.getLogs();
+    assertThat(logs).contains("Missing blame information for the following files");
+    String files = StringUtils.substringBefore(substringAfter(logs, "Missing blame information for the following files:"), "This may lead to missing/broken features");
+    assertThat(files).contains("src/main/java/org/dummy/Dummy.java",
       "src/main/java/org/dummy/Dummy2.java");
 
-    if (orchestrator.getServer().version().isGreaterThanOrEquals("7.1")) {
+    if (orchestrator.getServer().version().isGreaterThanOrEquals(7, 1)) {
       assertThat(getScmData("dummy:dummy:src/main/java/org/dummy/Dummy.java")).hasSize(29);
     } else {
       assertThat(getScmData("dummy:dummy:src/main/java/org/dummy/Dummy.java")).isEmpty();
@@ -213,22 +212,21 @@ public class SvnTest {
       ZipUtils.unzip(new File(new File(REPO_DIR, serverVersion), zipName), out);
       return out;
     } catch (IOException e) {
-      throw Throwables.propagate(e);
+      throw new IllegalStateException(e);
     }
   }
 
-  public static BuildResult runSonar(File baseDir, String... keyValues) {
+  public static BuildResult runSonar(File baseDir, String... keyValues) throws IOException {
     File pom = new File(baseDir, "pom.xml");
+    Files.createDirectories(baseDir.toPath().resolve("target/classes"));
 
-    MavenBuild install = MavenBuild.create(pom).setGoals("clean install");
     MavenBuild sonar = MavenBuild.create(pom).setGoals("sonar:sonar");
     sonar.setProperty("sonar.scm.disabled", "false");
+    sonar.setProperty("sonar.java.binaries", "target/classes");
     sonar.setProperties(keyValues);
-    orchestrator.executeBuild(install);
     return orchestrator.executeBuild(sonar);
   }
 
-  private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
   private static final SimpleDateFormat DATETIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 
   private class LineData {
@@ -238,14 +236,8 @@ public class SvnTest {
     final String author;
 
     public LineData(String revision, String datetime, String author) throws ParseException {
-      this.revision = IS_5_2_OR_MORE ? revision : null;
-      this.date = IS_5_2_OR_MORE ? DATETIME_FORMAT.parse(datetime) : DateUtils.truncate(DATETIME_FORMAT.parse(datetime), Calendar.DAY_OF_MONTH);
-      this.author = author;
-    }
-
-    public LineData(String date, String author) throws ParseException {
-      this.revision = null;
-      this.date = DATE_FORMAT.parse(date);
+      this.revision = revision;
+      this.date = DATETIME_FORMAT.parse(datetime);
       this.author = author;
     }
 
@@ -276,8 +268,7 @@ public class SvnTest {
       // Time part was added in 5.2
       String dateOrDatetime = (String) item.get(2);
       // Revision was added in 5.2
-      result.put(((Long) item.get(0)).intValue(), IS_5_2_OR_MORE ? new LineData((String) item.get(3),
-        dateOrDatetime, (String) item.get(1)) : new LineData(dateOrDatetime, (String) item.get(1)));
+      result.put(((Long) item.get(0)).intValue(), new LineData((String) item.get(3), dateOrDatetime, (String) item.get(1)));
     }
     return result;
   }
