@@ -99,10 +99,16 @@ public class SvnScmProvider extends ScmProvider {
     return null;
   }
 
-  private static Set<Path> computeChangedPaths(Path rootBaseDir, SVNClientManager clientManager) throws SVNException {
+  private static Set<Path> computeChangedPaths(Path projectBasedir, SVNClientManager clientManager) throws SVNException {
     SVNWCClient wcClient = clientManager.getWCClient();
-    SVNInfo svnInfo = wcClient.doInfo(rootBaseDir.toFile(), null);
-    String base = "/" + Paths.get(svnInfo.getRepositoryRootURL().getPath()).relativize(Paths.get(svnInfo.getURL().getPath()));
+    SVNInfo svnInfo = wcClient.doInfo(projectBasedir.toFile(), null);
+
+    // SVN path of the repo root, for example: /C:/Users/JANOSG~1/AppData/Local/Temp/x/y
+    String svnRootPath = svnInfo.getRepositoryRootURL().getPath();
+    // SVN path of projectBasedir, for example: /C:/Users/JANOSG~1/AppData/Local/Temp/x/y/branches/b1
+    String svnProjectPath = svnInfo.getURL().getPath();
+    // path of projectBasedir, as "absolute path within the SVN repo", for example: /branches/b1
+    Path inRepoProjectPath = Paths.get(svnProjectPath.substring(svnRootPath.length()));
 
     // We inspect "svn log" from latest revision until copy-point.
     // The same path may appear in multiple commits, the ordering of changes and removals is important.
@@ -110,10 +116,10 @@ public class SvnScmProvider extends ScmProvider {
     Set<Path> removed = new HashSet<>();
 
     SVNLogClient svnLogClient = clientManager.getLogClient();
-    svnLogClient.doLog(new File[] {rootBaseDir.toFile()}, null, null, null, true, true, 0, svnLogEntry -> {
+    svnLogClient.doLog(new File[] {projectBasedir.toFile()}, null, null, null, true, true, 0, svnLogEntry -> {
       for (SVNLogEntryPath entry : svnLogEntry.getChangedPaths().values()) {
         if (entry.getKind().equals(SVNNodeKind.FILE)) {
-          Path path = rootBaseDir.resolve(Paths.get(base).relativize(Paths.get(entry.getPath())));
+          Path path = projectBasedir.resolve(inRepoProjectPath.relativize(Paths.get(entry.getPath())));
           if (isModified(entry)) {
             // Skip if the path is removed in a more recent commit
             if (!removed.contains(path)) {
