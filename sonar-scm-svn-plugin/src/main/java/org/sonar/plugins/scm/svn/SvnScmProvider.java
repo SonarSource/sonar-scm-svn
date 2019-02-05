@@ -20,6 +20,9 @@
 package org.sonar.plugins.scm.svn;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
@@ -34,6 +37,7 @@ import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNLogEntryPath;
 import org.tmatesoft.svn.core.SVNNodeKind;
+import org.tmatesoft.svn.core.SVNURL;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNDiffClient;
 import org.tmatesoft.svn.core.wc.SVNInfo;
@@ -99,10 +103,16 @@ public class SvnScmProvider extends ScmProvider {
     return null;
   }
 
-  private static Set<Path> computeChangedPaths(Path rootBaseDir, SVNClientManager clientManager) throws SVNException {
+  private static Set<Path> computeChangedPaths(Path projectBasedir, SVNClientManager clientManager) throws SVNException {
     SVNWCClient wcClient = clientManager.getWCClient();
-    SVNInfo svnInfo = wcClient.doInfo(rootBaseDir.toFile(), null);
-    String base = "/" + Paths.get(svnInfo.getRepositoryRootURL().getPath()).relativize(Paths.get(svnInfo.getURL().getPath()));
+    SVNInfo svnInfo = wcClient.doInfo(projectBasedir.toFile(), null);
+
+    // SVN path of the repo root, for example: /C:/Users/JANOSG~1/AppData/Local/Temp/x/y
+    Path svnRootPath = toPath(svnInfo.getRepositoryRootURL());
+    // SVN path of projectBasedir, for example: /C:/Users/JANOSG~1/AppData/Local/Temp/x/y/branches/b1
+    Path svnProjectPath = toPath(svnInfo.getURL());
+    // path of projectBasedir, as "absolute path within the SVN repo", for example: /branches/b1
+    Path inRepoProjectPath = Paths.get("/").resolve(svnRootPath.relativize(svnProjectPath));
 
     // We inspect "svn log" from latest revision until copy-point.
     // The same path may appear in multiple commits, the ordering of changes and removals is important.
@@ -110,10 +120,10 @@ public class SvnScmProvider extends ScmProvider {
     Set<Path> removed = new HashSet<>();
 
     SVNLogClient svnLogClient = clientManager.getLogClient();
-    svnLogClient.doLog(new File[] {rootBaseDir.toFile()}, null, null, null, true, true, 0, svnLogEntry -> {
+    svnLogClient.doLog(new File[] {projectBasedir.toFile()}, null, null, null, true, true, 0, svnLogEntry -> {
       for (SVNLogEntryPath entry : svnLogEntry.getChangedPaths().values()) {
         if (entry.getKind().equals(SVNNodeKind.FILE)) {
-          Path path = rootBaseDir.resolve(Paths.get(base).relativize(Paths.get(entry.getPath())));
+          Path path = projectBasedir.resolve(inRepoProjectPath.relativize(Paths.get(entry.getPath())));
           if (isModified(entry)) {
             // Skip if the path is removed in a more recent commit
             if (!removed.contains(path)) {
@@ -126,6 +136,17 @@ public class SvnScmProvider extends ScmProvider {
       }
     });
     return paths;
+  }
+
+  private static Path toPath(SVNURL svnUrl) {
+    if ("file".equals(svnUrl.getProtocol())) {
+      try {
+        return Paths.get(new URL("file", svnUrl.getHost(), svnUrl.getPath()).toURI());
+      } catch (URISyntaxException | MalformedURLException e) {
+        throw new IllegalStateException(e);
+      }
+    }
+    throw new IllegalStateException("Expected file protocol of url, was: " + svnUrl);
   }
 
   private static boolean isModified(SVNLogEntryPath entry) {
