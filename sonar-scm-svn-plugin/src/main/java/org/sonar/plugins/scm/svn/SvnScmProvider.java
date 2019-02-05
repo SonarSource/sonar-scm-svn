@@ -20,6 +20,9 @@
 package org.sonar.plugins.scm.svn;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
@@ -34,6 +37,7 @@ import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNLogEntryPath;
 import org.tmatesoft.svn.core.SVNNodeKind;
+import org.tmatesoft.svn.core.SVNURL;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNDiffClient;
 import org.tmatesoft.svn.core.wc.SVNInfo;
@@ -104,11 +108,11 @@ public class SvnScmProvider extends ScmProvider {
     SVNInfo svnInfo = wcClient.doInfo(projectBasedir.toFile(), null);
 
     // SVN path of the repo root, for example: /C:/Users/JANOSG~1/AppData/Local/Temp/x/y
-    String svnRootPath = svnInfo.getRepositoryRootURL().getPath();
+    Path svnRootPath = toPath(svnInfo.getRepositoryRootURL());
     // SVN path of projectBasedir, for example: /C:/Users/JANOSG~1/AppData/Local/Temp/x/y/branches/b1
-    String svnProjectPath = svnInfo.getURL().getPath();
+    Path svnProjectPath = toPath(svnInfo.getURL());
     // path of projectBasedir, as "absolute path within the SVN repo", for example: /branches/b1
-    Path inRepoProjectPath = Paths.get(svnProjectPath.substring(svnRootPath.length()));
+    Path inRepoProjectPath = Paths.get("/").resolve(svnRootPath.relativize(svnProjectPath));
 
     // We inspect "svn log" from latest revision until copy-point.
     // The same path may appear in multiple commits, the ordering of changes and removals is important.
@@ -132,6 +136,17 @@ public class SvnScmProvider extends ScmProvider {
       }
     });
     return paths;
+  }
+
+  private static Path toPath(SVNURL svnUrl) {
+    if ("file".equals(svnUrl.getProtocol())) {
+      try {
+        return Paths.get(new URL("file", svnUrl.getHost(), svnUrl.getPath()).toURI());
+      } catch (URISyntaxException | MalformedURLException e) {
+        throw new IllegalStateException(e);
+      }
+    }
+    throw new IllegalStateException("Expected file protocol of url, was: " + svnUrl);
   }
 
   private static boolean isModified(SVNLogEntryPath entry) {
