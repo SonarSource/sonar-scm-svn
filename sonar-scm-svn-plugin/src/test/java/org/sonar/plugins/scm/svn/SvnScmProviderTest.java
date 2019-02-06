@@ -222,7 +222,7 @@ public class SvnScmProviderTest {
 
     SvnScmProvider scmProvider = new SvnScmProvider(mock(SvnConfiguration.class), new SvnBlameCommand(mock(SvnConfiguration.class))) {
       @Override
-      ChangedLinesComputer newChangedLinesComputer(Set<Path> changedFiles) {
+      ChangedLinesComputer newChangedLinesComputer(Path rootBaseDir, Set<Path> changedFiles) {
         throw new IllegalStateException("crash");
       }
     };

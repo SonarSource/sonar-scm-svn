@@ -32,11 +32,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ChangedLinesComputerTest {
 
-  private final ChangedLinesComputer underTest = new ChangedLinesComputer(ImmutableSet.of(
-    Paths.get("sample1"),
-    Paths.get("sample2"),
-    Paths.get("sample3"),
-    Paths.get("sample4")));
+  private final Path rootBaseDir = Paths.get("/foo");
+  private final ChangedLinesComputer underTest = new ChangedLinesComputer(rootBaseDir, ImmutableSet.of(
+    rootBaseDir.resolve("sample1"),
+    rootBaseDir.resolve("sample2"),
+    rootBaseDir.resolve("sample3"),
+    rootBaseDir.resolve("sample4")));
 
   @Test
   public void do_not_count_deleted_line() throws IOException {
@@ -61,7 +62,7 @@ public class ChangedLinesComputerTest {
       + "+added line\n";
 
     printDiff(example);
-    assertThat(underTest.changedLines()).isEqualTo(ImmutableMap.of(Paths.get("sample1"), singleton(1)));
+    assertThat(underTest.changedLines()).isEqualTo(ImmutableMap.of(rootBaseDir.resolve("sample1"), singleton(1)));
   }
 
   @Test
@@ -76,7 +77,22 @@ public class ChangedLinesComputerTest {
       + "+added line 2\n";
 
     printDiff(example);
-    assertThat(underTest.changedLines()).isEqualTo(ImmutableMap.of(Paths.get("sample1"), ImmutableSet.of(2, 3)));
+    assertThat(underTest.changedLines()).isEqualTo(ImmutableMap.of(rootBaseDir.resolve("sample1"), ImmutableSet.of(2, 3)));
+  }
+
+  @Test
+  public void handle_index_using_absolute_paths() throws IOException {
+    String example = "Index: /foo/sample1\n"
+      + "===================================================================\n"
+      + "--- a/sample1\n"
+      + "+++ b/sample1\n"
+      + "@@ -1 +1,3 @@\n"
+      + " same line\n"
+      + "+added line 1\n"
+      + "+added line 2\n";
+
+    printDiff(example);
+    assertThat(underTest.changedLines()).isEqualTo(ImmutableMap.of(rootBaseDir.resolve("sample1"), ImmutableSet.of(2, 3)));
   }
 
   @Test
@@ -103,7 +119,7 @@ public class ChangedLinesComputerTest {
       + "+Deeper and more profound,\n"
       + "+The door of all subtleties!\n";
     printDiff(example);
-    assertThat(underTest.changedLines()).isEqualTo(ImmutableMap.of(Paths.get("sample1"), ImmutableSet.of(2, 3, 11, 12, 13)));
+    assertThat(underTest.changedLines()).isEqualTo(ImmutableMap.of(rootBaseDir.resolve("sample1"), ImmutableSet.of(2, 3, 11, 12, 13)));
   }
 
   @Test(expected = IllegalStateException.class)
@@ -162,9 +178,9 @@ public class ChangedLinesComputerTest {
     assertThat(underTest.changedLines())
       .isEqualTo(
         ImmutableMap.of(
-          Paths.get("sample2"), ImmutableSet.of(1),
-          Paths.get("sample3"), ImmutableSet.of(1, 2),
-          Paths.get("sample4"), ImmutableSet.of(2, 3)));
+          rootBaseDir.resolve("sample2"), ImmutableSet.of(1),
+          rootBaseDir.resolve("sample3"), ImmutableSet.of(1, 2),
+          rootBaseDir.resolve("sample4"), ImmutableSet.of(2, 3)));
   }
 
   private void printDiff(String unifiedDiff) throws IOException {

@@ -46,8 +46,8 @@ class ChangedLinesComputer {
     }
   };
 
-  ChangedLinesComputer(Set<Path> included) {
-    this.tracker = new Tracker(included);
+  ChangedLinesComputer(Path rootBaseDir, Set<Path> included) {
+    this.tracker = new Tracker(rootBaseDir, included);
   }
 
   /**
@@ -99,18 +99,23 @@ class ChangedLinesComputer {
 
     private final Map<Path, Set<Integer>> changedLines = new HashMap<>();
     private final Set<Path> included;
+    private final Path rootBaseDir;
 
     private int lineNumInTarget;
     private Path currentPath = null;
     private int skipCount = 0;
 
-    Tracker(Set<Path> included) {
+    Tracker(Path rootBaseDir, Set<Path> included) {
+      this.rootBaseDir = rootBaseDir;
       this.included = included;
     }
 
     private void parseLine(String line) {
       if (line.startsWith(ENTRY_START_PREFIX)) {
         currentPath = Paths.get(line.substring(ENTRY_START_PREFIX.length()).trim());
+        if (!currentPath.isAbsolute()) {
+          currentPath = rootBaseDir.resolve(currentPath);
+        }
         if (!included.contains(currentPath)) {
           return;
         }
