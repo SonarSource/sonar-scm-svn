@@ -171,7 +171,7 @@ public class SvnScmProvider extends ScmProvider {
 
       SVNDiffClient svnDiffClient = clientManager.getDiffClient();
       File path = rootBaseDir.toFile();
-      ChangedLinesComputer computer = newChangedLinesComputer(changedFiles);
+      ChangedLinesComputer computer = newChangedLinesComputer(rootBaseDir, changedFiles);
       svnDiffClient.doDiff(path, SVNRevision.create(startRev), path, SVNRevision.WORKING, SVNDepth.INFINITY, false, computer.receiver(), null);
       return computer.changedLines();
     } catch (Exception e) {
@@ -189,7 +189,7 @@ public class SvnScmProvider extends ScmProvider {
     return null;
   }
 
-  ChangedLinesComputer newChangedLinesComputer(Set<Path> changedFiles) {
-    return new ChangedLinesComputer(changedFiles);
+  ChangedLinesComputer newChangedLinesComputer(Path rootBaseDir, Set<Path> changedFiles) {
+    return new ChangedLinesComputer(rootBaseDir, changedFiles);
   }
 }
