@@ -146,7 +146,7 @@ public class SvnScmProvider extends ScmProvider {
         throw new IllegalStateException(e);
       }
     }
-    throw new IllegalStateException("Expected file protocol of url, was: " + svnUrl);
+    return Paths.get(svnUrl.getURIEncodedPath());
   }
 
   private static boolean isModified(SVNLogEntryPath entry) {
