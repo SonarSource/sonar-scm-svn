@@ -19,7 +19,7 @@
 
 
   <properties>
-    <sonar.buildVersion>7.4-alpha1</sonar.buildVersion>
+    <sonar.buildVersion>7.4</sonar.buildVersion>
     <sonar.pluginName>SVN</sonar.pluginName>
     <sonar.pluginClass>org.sonar.plugins.scm.svn.SvnPlugin</sonar.pluginClass>
   </properties>
