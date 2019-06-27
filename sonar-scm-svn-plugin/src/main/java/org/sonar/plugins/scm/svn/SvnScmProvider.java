@@ -103,7 +103,7 @@ public class SvnScmProvider extends ScmProvider {
     return null;
   }
 
-  private static Set<Path> computeChangedPaths(Path projectBasedir, SVNClientManager clientManager) throws SVNException {
+  static Set<Path> computeChangedPaths(Path projectBasedir, SVNClientManager clientManager) throws SVNException {
     SVNWCClient wcClient = clientManager.getWCClient();
     SVNInfo svnInfo = wcClient.doInfo(projectBasedir.toFile(), null);
 
