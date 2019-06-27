@@ -109,6 +109,13 @@ public class SvnScmProvider extends ScmProvider {
 
     // SVN path of the repo root, for example: /C:/Users/JANOSG~1/AppData/Local/Temp/x/y
     Path svnRootPath = toPath(svnInfo.getRepositoryRootURL());
+
+    /* the svn root path is "" (which is returned by svnkit e.g. for urls like http://svnserver/) set it to "/". to
+    avoid crashing when using Path.relativize later */
+    if(svnRootPath.equals(Paths.get(""))){
+      svnRootPath = Paths.get("/");
+    }
+
     // SVN path of projectBasedir, for example: /C:/Users/JANOSG~1/AppData/Local/Temp/x/y/branches/b1
     Path svnProjectPath = toPath(svnInfo.getURL());
     // path of projectBasedir, as "absolute path within the SVN repo", for example: /branches/b1
