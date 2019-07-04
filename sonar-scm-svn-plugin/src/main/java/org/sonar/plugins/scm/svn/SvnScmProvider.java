@@ -110,9 +110,9 @@ public class SvnScmProvider extends ScmProvider {
     // SVN path of the repo root, for example: /C:/Users/JANOSG~1/AppData/Local/Temp/x/y
     Path svnRootPath = toPath(svnInfo.getRepositoryRootURL());
 
-    /* the svn root path is "" (which is returned by svnkit e.g. for urls like http://svnserver/) set it to "/". to
-    avoid crashing when using Path.relativize later */
-    if(svnRootPath.equals(Paths.get(""))){
+    // the svn root path may be "" for urls like http://svnserver/
+    // -> set it to "/" to avoid crashing when using Path.relativize later
+    if (svnRootPath.equals(Paths.get(""))) {
       svnRootPath = Paths.get("/");
     }
 
@@ -128,7 +128,7 @@ public class SvnScmProvider extends ScmProvider {
 
     SVNLogClient svnLogClient = clientManager.getLogClient();
     svnLogClient.doLog(new File[] {projectBasedir.toFile()}, null, null, null, true, true, 0, svnLogEntry -> {
-      for (SVNLogEntryPath entry : svnLogEntry.getChangedPaths().values()) {
+      svnLogEntry.getChangedPaths().values().forEach(entry -> {
         if (entry.getKind().equals(SVNNodeKind.FILE)) {
           Path path = projectBasedir.resolve(inRepoProjectPath.relativize(Paths.get(entry.getPath())));
           if (isModified(entry)) {
@@ -140,7 +140,7 @@ public class SvnScmProvider extends ScmProvider {
             removed.add(path);
           }
         }
-      }
+      });
     });
     return paths;
   }

@@ -19,6 +19,13 @@
  */
 package org.sonar.plugins.scm.svn;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.Set;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -35,17 +42,12 @@ import org.tmatesoft.svn.core.wc.SVNInfo;
 import org.tmatesoft.svn.core.wc.SVNLogClient;
 import org.tmatesoft.svn.core.wc.SVNWCClient;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.Set;
-
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class SvnScmProviderTest {
 
@@ -239,36 +241,27 @@ public class SvnScmProviderTest {
   }
 
   @Test
-  public void computeChangedPaths_should_not_crash_when_getRepositoryRootURL_getPath_is_empty(){
-    try {
+  public void computeChangedPaths_should_not_crash_when_getRepositoryRootURL_getPath_is_empty() throws SVNException {
+    // verify assumptions about what SVNKit returns as svn root path for urls like http://svnserver/
+    assertThat(SVNURL.parseURIEncoded("http://svnserver/").getPath()).isEmpty();
+    assertThat(SVNURL.parseURIEncoded("http://svnserver").getPath()).isEmpty();
 
-      /* At first ensure that the test makes sense because the used svn kit still has the behaviour, that the path
-      * of an svn url is not / but "" when a repository on a http server is on the root level */
-      Assert.assertEquals("", SVNURL.parseURIEncoded("http://svnserver/").getPath());
-      Assert.assertEquals("", SVNURL.parseURIEncoded("http://svnserver").getPath());
-      Assert.assertNotEquals("/", SVNURL.parseURIEncoded("http://svnserver/").getPath());
-      Assert.assertNotEquals("/", SVNURL.parseURIEncoded("http://svnserver").getPath());
+    SVNClientManager svnClientManagerMock = mock(SVNClientManager.class);
 
-      SVNClientManager svnClientManagerMock = mock(SVNClientManager.class);
-      SVNWCClient svnwcClientMock = mock(SVNWCClient.class);
+    SVNWCClient svnwcClientMock = mock(SVNWCClient.class);
+    when(svnClientManagerMock.getWCClient()).thenReturn(svnwcClientMock);
 
-      SVNInfo svnInfoMock = mock(SVNInfo.class);
+    SVNLogClient svnLogClient = mock(SVNLogClient.class);
+    when(svnClientManagerMock.getLogClient()).thenReturn(svnLogClient);
 
-      when(svnClientManagerMock.getWCClient()).thenReturn(svnwcClientMock);
+    SVNInfo svnInfoMock = mock(SVNInfo.class);
+    when(svnwcClientMock.doInfo(any(), any())).thenReturn(svnInfoMock);
 
-      when(svnwcClientMock.doInfo(any(), any())).thenReturn(svnInfoMock);
+    // Simulate repository root on /, SVNKIT then returns an repository root url WITHOUT / at the end.
+    when(svnInfoMock.getRepositoryRootURL()).thenReturn(SVNURL.parseURIEncoded("http://svnserver"));
+    when(svnInfoMock.getURL()).thenReturn(SVNURL.parseURIEncoded("http://svnserver/myproject/trunk/"));
 
-      // Simulate repository root on /, SVNKIT then returns an repository root url WITHOUT / at the end.
-      when(svnInfoMock.getRepositoryRootURL()).thenReturn(SVNURL.parseURIEncoded("http://svnserver"));
-      when(svnInfoMock.getURL()).thenReturn(SVNURL.parseURIEncoded("http://svnserver/myproject/trunk/"));
-
-      SVNLogClient svnLogClient = mock(SVNLogClient.class);
-      when(svnClientManagerMock.getLogClient()).thenReturn(svnLogClient);
-
-      SvnScmProvider.computeChangedPaths(Paths.get("/"), svnClientManagerMock);
-    } catch (Exception e){
-      fail("caught exception", e);
-    }
+    assertThat(SvnScmProvider.computeChangedPaths(Paths.get("/"), svnClientManagerMock)).isEmpty();
   }
 
   private void createAndCommitFile(Path worktree, String filename, String content) throws IOException, SVNException {
