@@ -48,27 +48,15 @@ public class FindLatestFork {
 
   public ForkPoint find(Path location) throws SVNException {
     Instant start = Instant.now();
-    SVNClientManager clientManager = newSvnClientManager(configuration);
 
-    File[] files = new File[] {location.toFile()};
-
-    SVNStatus svnStatus = clientManager.getStatusClient().doStatus(location.toFile(), false);
-    SVNRevision revision = svnStatus.getRevision();
-
-    SVNLogEntryHolder handler = new SVNLogEntryHolder(); // keep only the last SVNLogEntry
-    SVNRevision startRevision = SVNRevision.create(revision.getNumber());
-    SVNRevision endRevision = SVNRevision.create(1);
-    clientManager.getLogClient().doLog(files, startRevision, endRevision, true, true, -1, handler);
+    SVNLogEntryHolder handler = getLastSVNLogEntry(location);
     SVNLogEntry lastEntry = handler.getLastEntry();
-
     SVNLogEntryPath value = lastEntry.getChangedPaths().entrySet().iterator().next().getValue();
 
     Set<String> references = new HashSet<>();
     if (value.getCopyPath() != null) {
       references.add(value.getCopyPath());
     }
-
-    LOG.debug("latest revision is " + revision);
 
     if(value.getCopyRevision() == -1){
       // we walked the history to the root, and the last commit found had no copy reference. Must be the trunk, there is no fork point
@@ -78,6 +66,23 @@ public class FindLatestFork {
     ForkPoint forkPoint = new ForkPoint(String.valueOf(value.getCopyRevision()), references);
     LOG.debug(forkPoint + " found in " + Duration.between(start, Instant.now()).toMillis() + "ms reading " + handler.getCpt() + " revision(s)");
     return forkPoint;
+  }
+
+  private SVNLogEntryHolder getLastSVNLogEntry(Path location) throws SVNException {
+    SVNClientManager clientManager = newSvnClientManager(configuration);
+    SVNRevision revision = getSvnRevision(location, clientManager);
+
+    SVNLogEntryHolder handler = new SVNLogEntryHolder();
+    SVNRevision startRevision = SVNRevision.create(revision.getNumber());
+    SVNRevision endRevision = SVNRevision.create(1);
+    clientManager.getLogClient().doLog(new File[] {location.toFile()}, startRevision, endRevision, true, true, -1, handler);
+    return handler;
+  }
+
+  private SVNRevision getSvnRevision(Path location, SVNClientManager clientManager) throws SVNException {
+    SVNStatus svnStatus = clientManager.getStatusClient().doStatus(location.toFile(), false);
+    LOG.debug("latest revision is " + svnStatus.getRevision());
+    return svnStatus.getRevision();
   }
 
   /**
