@@ -64,6 +64,12 @@ public class SvnTester {
     copyClient.doCopy(new SVNCopySource[] {source}, localRepository.appendPath("branches/" + branchName, false), false, false, true, "Create branch", null);
   }
 
+  public void createBranch(String branchSource, String branchName) throws IOException, SVNException {
+    SVNCopyClient copyClient = manager.getCopyClient();
+    SVNCopySource source = new SVNCopySource(SVNRevision.HEAD, SVNRevision.HEAD, localRepository.appendPath(branchSource, false));
+    copyClient.doCopy(new SVNCopySource[] {source}, localRepository.appendPath("branches/" + branchName, false), false, false, true, "Create branch", null);
+  }
+
   public void checkout(Path worktree, String path) throws SVNException {
     SVNUpdateClient updateClient = manager.getUpdateClient();
     updateClient.doCheckout(localRepository.appendPath(path, false),
