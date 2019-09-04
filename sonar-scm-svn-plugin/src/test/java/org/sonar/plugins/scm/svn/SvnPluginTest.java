@@ -37,7 +37,7 @@ public class SvnPluginTest {
     SonarRuntime runtime = SonarRuntimeImpl.forSonarQube(Version.create(5, 6), SonarQubeSide.SCANNER);
     Plugin.Context context = new Plugin.Context(runtime);
     new SvnPlugin().define(context);
-    assertThat(context.getExtensions()).hasSize(7);
+    assertThat(context.getExtensions()).isNotEmpty();
   }
 
   @Test

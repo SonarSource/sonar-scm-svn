@@ -51,7 +51,8 @@ public final class SvnPlugin implements Plugin {
   public void define(Context context) {
     context.addExtensions(SvnScmProvider.class,
       SvnBlameCommand.class,
-      SvnConfiguration.class);
+      SvnConfiguration.class,
+      FindFork.class);
     context.addExtensions(SvnConfiguration.getProperties());
 
   }

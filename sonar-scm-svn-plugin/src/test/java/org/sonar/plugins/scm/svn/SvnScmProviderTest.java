@@ -24,9 +24,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Set;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,6 +35,7 @@ import org.junit.rules.TemporaryFolder;
 import org.sonar.api.batch.scm.ScmProvider;
 import org.sonar.api.internal.google.common.collect.ImmutableMap;
 import org.sonar.api.internal.google.common.collect.ImmutableSet;
+import org.tmatesoft.svn.core.SVNCancelException;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
@@ -42,9 +43,7 @@ import org.tmatesoft.svn.core.wc.SVNInfo;
 import org.tmatesoft.svn.core.wc.SVNLogClient;
 import org.tmatesoft.svn.core.wc.SVNWCClient;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -85,6 +84,8 @@ public class SvnScmProviderTest {
   @Rule
   public ExpectedException thrown = ExpectedException.none();
 
+  private FindFork findFork = mock(FindFork.class);
+  private SvnConfiguration config = mock(SvnConfiguration.class);
   private SvnTester svnTester;
 
   @Before
@@ -98,8 +99,8 @@ public class SvnScmProviderTest {
 
   @Test
   public void sanityCheck() {
-    SvnBlameCommand blameCommand = new SvnBlameCommand(mock(SvnConfiguration.class));
-    SvnScmProvider svnScmProvider = new SvnScmProvider(mock(SvnConfiguration.class), blameCommand);
+    SvnBlameCommand blameCommand = new SvnBlameCommand(config);
+    SvnScmProvider svnScmProvider = new SvnScmProvider(config, blameCommand, findFork);
     assertThat(svnScmProvider.key()).isEqualTo("svn");
     assertThat(svnScmProvider.blameCommand()).isEqualTo(blameCommand);
   }
@@ -231,13 +232,39 @@ public class SvnScmProviderTest {
     svnTester.createBranch("b1");
     svnTester.checkout(b1, "branches/b1");
 
-    SvnScmProvider scmProvider = new SvnScmProvider(mock(SvnConfiguration.class), new SvnBlameCommand(mock(SvnConfiguration.class))) {
+    SvnScmProvider scmProvider = new SvnScmProvider(config, new SvnBlameCommand(config), findFork) {
       @Override
       ChangedLinesComputer newChangedLinesComputer(Path rootBaseDir, Set<Path> changedFiles) {
         throw new IllegalStateException("crash");
       }
     };
     assertThat(scmProvider.branchChangedLines("b1", b1, Collections.emptySet())).isNull();
+  }
+
+  @Test
+  public void forkDate_returns_null_if_no_fork_found() {
+    assertThat(new SvnScmProvider(config, new SvnBlameCommand(config), findFork).forkDate(Paths.get(""), "branch")).isNull();
+  }
+
+  @Test
+  public void forkDate_returns_instant_if_fork_found() throws SVNException {
+    Path rootBaseDir = Paths.get("");
+    String referenceBranch = "branch";
+    Instant forkDate = Instant.ofEpochMilli(123456789L);
+    SvnScmProvider provider = new SvnScmProvider(config, new SvnBlameCommand(config), findFork);
+    when(findFork.findDate(rootBaseDir, referenceBranch)).thenReturn(forkDate);
+
+    assertThat(provider.forkDate(rootBaseDir, referenceBranch)).isEqualTo(forkDate);
+  }
+
+  @Test
+  public void forkDate_returns_null_if_exception_occurs() throws SVNException {
+    Path rootBaseDir = Paths.get("");
+    String referenceBranch = "branch";
+    SvnScmProvider provider = new SvnScmProvider(config, new SvnBlameCommand(config), findFork);
+    when(findFork.findDate(rootBaseDir, referenceBranch)).thenThrow(new SVNCancelException());
+
+    assertThat(provider.forkDate(rootBaseDir, referenceBranch)).isNull();
   }
 
   @Test
@@ -290,6 +317,6 @@ public class SvnScmProviderTest {
   }
 
   private SvnScmProvider newScmProvider() {
-    return new SvnScmProvider(mock(SvnConfiguration.class), new SvnBlameCommand(mock(SvnConfiguration.class)));
+    return new SvnScmProvider(config, new SvnBlameCommand(config), findFork);
   }
 }

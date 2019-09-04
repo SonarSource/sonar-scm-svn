@@ -25,6 +25,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -53,10 +54,12 @@ public class SvnScmProvider extends ScmProvider {
 
   private final SvnConfiguration configuration;
   private final SvnBlameCommand blameCommand;
+  private final FindFork findFork;
 
-  public SvnScmProvider(SvnConfiguration configuration, SvnBlameCommand blameCommand) {
+  public SvnScmProvider(SvnConfiguration configuration, SvnBlameCommand blameCommand, FindFork findFork) {
     this.configuration = configuration;
     this.blameCommand = blameCommand;
+    this.findFork = findFork;
   }
 
   @Override
@@ -194,6 +197,19 @@ public class SvnScmProvider extends ScmProvider {
     }
 
     return null;
+  }
+
+  /**
+   * It will override API in 8.4
+   */
+  @CheckForNull
+  public Instant forkDate(Path rootBaseDir, String referenceBranch) {
+    try {
+      return findFork.findDate(rootBaseDir, referenceBranch);
+    } catch (SVNException e) {
+      LOG.warn("Unable to find fork date with '" + referenceBranch + "'", e);
+      return null;
+    }
   }
 
   ChangedLinesComputer newChangedLinesComputer(Path rootBaseDir, Set<Path> changedFiles) {
