@@ -1,5 +1,5 @@
 /*
- * SonarQube :: Plugins :: SCM :: Git
+ * SonarQube :: Plugins :: SCM :: SVN
  * Copyright (C) 2014-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
