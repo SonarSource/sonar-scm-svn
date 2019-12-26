@@ -79,7 +79,7 @@ public class SvnTest {
 
   @ClassRule
   public static Orchestrator orchestrator = Orchestrator.builderEnv()
-    .setSonarVersion(System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE[6.7]"))
+    .setSonarVersion(System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE[7.9]"))
     .addPlugin(FileLocation.byWildcardMavenFilename(new File("../sonar-scm-svn-plugin/target"), "sonar-scm-svn-plugin-*.jar"))
     .addPlugin(MavenLocation.of("org.sonarsource.java", "sonar-java-plugin", "LATEST_RELEASE"))
     .build();
