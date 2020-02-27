@@ -1,6 +1,6 @@
 # SonarQube SVN Plugin
 
-[![Build Status](https://travis-ci.org/SonarSource/sonar-scm-svn.svg?branch=master)](https://travis-ci.org/SonarSource/sonar-scm-svn)
+[![Build Status](https://api.cirrus-ci.com/github/SonarSource/sonar-scm-svn.svg)](https://cirrus-ci.com/github/SonarSource/sonar-scm-svn)
 
 ### Have Question or Feedback?
 
