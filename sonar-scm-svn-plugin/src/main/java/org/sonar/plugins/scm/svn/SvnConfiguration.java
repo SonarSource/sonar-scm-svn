@@ -22,13 +22,14 @@ package org.sonar.plugins.scm.svn;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.CheckForNull;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.PropertyType;
 import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.batch.ScannerSide;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.config.PropertyDefinition;
-import org.sonar.api.config.Settings;
 import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.MessageException;
 
@@ -41,10 +42,10 @@ public class SvnConfiguration {
   public static final String PRIVATE_KEY_PATH_PROP_KEY = "sonar.svn.privateKeyPath";
   public static final String PASSWORD_PROP_KEY = "sonar.svn.password.secured";
   public static final String PASSPHRASE_PROP_KEY = "sonar.svn.passphrase.secured";
-  private final Settings settings;
+  private final Configuration config;
 
-  public SvnConfiguration(Settings settings) {
-    this.settings = settings;
+  public SvnConfiguration(Configuration config) {
+    this.config = config;
   }
 
   public static List<PropertyDefinition> getProperties() {
@@ -89,18 +90,19 @@ public class SvnConfiguration {
 
   @CheckForNull
   public String username() {
-    return settings.getString(USER_PROP_KEY);
+    return config.get(USER_PROP_KEY).orElse(null);
   }
 
   @CheckForNull
   public String password() {
-    return settings.getString(PASSWORD_PROP_KEY);
+    return config.get(PASSWORD_PROP_KEY).orElse(null);
   }
 
   @CheckForNull
   public File privateKey() {
-    if (settings.hasKey(PRIVATE_KEY_PATH_PROP_KEY)) {
-      File privateKeyFile = new File(settings.getString(PRIVATE_KEY_PATH_PROP_KEY));
+    Optional<String> privateKeyOpt = config.get(PRIVATE_KEY_PATH_PROP_KEY);
+    if (privateKeyOpt.isPresent()) {
+      File privateKeyFile = new File(privateKeyOpt.get());
       if (!privateKeyFile.exists() || !privateKeyFile.isFile() || !privateKeyFile.canRead()) {
         throw MessageException.of("Unable to read private key from '" + privateKeyFile + "'");
       }
@@ -111,7 +113,7 @@ public class SvnConfiguration {
 
   @CheckForNull
   public String passPhrase() {
-    return settings.getString(PASSPHRASE_PROP_KEY);
+    return config.get(PASSPHRASE_PROP_KEY).orElse(null);
   }
 
 }
