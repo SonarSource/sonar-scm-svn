@@ -24,7 +24,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonar.api.config.PropertyDefinitions;
-import org.sonar.api.config.Settings;
 import org.sonar.api.config.internal.MapSettings;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,8 +36,8 @@ public class SvnConfigurationTest {
 
   @Test
   public void sanityCheck() throws Exception {
-    Settings settings = new MapSettings(new PropertyDefinitions(SvnConfiguration.getProperties()));
-    SvnConfiguration config = new SvnConfiguration(settings);
+    MapSettings settings = new MapSettings(new PropertyDefinitions(SvnConfiguration.getProperties()));
+    SvnConfiguration config = new SvnConfiguration(settings.asConfig());
 
     assertThat(config.username()).isNull();
     assertThat(config.password()).isNull();
