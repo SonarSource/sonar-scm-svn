@@ -26,14 +26,12 @@ import java.util.Optional;
 import javax.annotation.CheckForNull;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.PropertyType;
-import org.sonar.api.batch.InstantiationStrategy;
-import org.sonar.api.batch.ScannerSide;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.resources.Qualifiers;
+import org.sonar.api.scanner.ScannerSide;
 import org.sonar.api.utils.MessageException;
 
-@InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 @ScannerSide
 public class SvnConfiguration {
 
