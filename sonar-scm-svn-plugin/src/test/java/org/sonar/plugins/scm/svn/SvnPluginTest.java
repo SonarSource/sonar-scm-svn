@@ -21,6 +21,7 @@ package org.sonar.plugins.scm.svn;
 
 import org.junit.Test;
 import org.sonar.api.Plugin;
+import org.sonar.api.SonarEdition;
 import org.sonar.api.SonarQubeSide;
 import org.sonar.api.SonarRuntime;
 import org.sonar.api.internal.SonarRuntimeImpl;
@@ -34,7 +35,7 @@ import static org.sonar.plugins.scm.svn.SvnPlugin.newSvnClientManager;
 public class SvnPluginTest {
   @Test
   public void getExtensions() {
-    SonarRuntime runtime = SonarRuntimeImpl.forSonarQube(Version.create(5, 6), SonarQubeSide.SCANNER);
+    SonarRuntime runtime = SonarRuntimeImpl.forSonarQube(Version.create(7, 9), SonarQubeSide.SCANNER, SonarEdition.DEVELOPER);
     Plugin.Context context = new Plugin.Context(runtime);
     new SvnPlugin().define(context);
     assertThat(context.getExtensions()).isNotEmpty();

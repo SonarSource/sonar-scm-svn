@@ -24,8 +24,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Optional;
 import javax.annotation.CheckForNull;
-import org.sonar.api.batch.InstantiationStrategy;
-import org.sonar.api.batch.ScannerSide;
+import org.sonar.api.scanner.ScannerSide;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.tmatesoft.svn.core.ISVNLogEntryHandler;
@@ -38,7 +37,6 @@ import org.tmatesoft.svn.core.wc.SVNStatus;
 
 import static org.sonar.plugins.scm.svn.SvnPlugin.newSvnClientManager;
 
-@InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 @ScannerSide
 public class FindFork {
   private static final Logger LOG = Loggers.get(FindFork.class);
