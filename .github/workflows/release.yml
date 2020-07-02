@@ -21,7 +21,7 @@ jobs:
           distribute: true
         uses: SonarSource/gh-action_LT_release@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_ORG_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       - name: Log outputs
         if: always()
         run: |
