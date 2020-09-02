@@ -69,7 +69,6 @@ qa_task:
   env:
     matrix:
       - SQ_VERSION: LATEST_RELEASE[7.9]
-      - SQ_VERSION: DEV
   maven_cache:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
   qa_script:
