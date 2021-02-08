@@ -2,6 +2,10 @@
 
 [![Build Status](https://api.cirrus-ci.com/github/SonarSource/sonar-scm-svn.svg)](https://cirrus-ci.com/github/SonarSource/sonar-scm-svn)
 
+### Enbedded since SonarQube 8.5
+
+This plugin is embedded in SonarQube starting 8.5, see [embedded sources](https://github.com/SonarSource/sonarqube/tree/master/sonar-scanner-engine/src/main/java/org/sonar/scm/svn).
+
 ### Have Question or Feedback?
 
 For support questions ("How do I?", "I got this error, why?", ...), please head to the [SonarSource forum](https://community.sonarsource.com/c/help). There are chances that a question similar to yours has already been answered.
