@@ -10,11 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Start release process
     steps:
-      # Not sure why this is needed... Fixes issue with running the action.
-      - name: Checkout release action
-        uses: actions/checkout@v2
-        with:
-          repository: SonarSource/gh-action_release/main@v3
       - name: Run release action
         id: run_release
         with:
